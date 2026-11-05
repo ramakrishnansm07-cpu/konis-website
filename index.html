@@ -138,7 +138,13 @@
 
         // Step 2: Get Firebase ID token.
        await result.user.reload();
-        const idToken = await result.user.getIdToken(true);
+
+console.log(
+  "Firebase emailVerified after reload:",
+  result.user.emailVerified
+);
+
+const idToken = await result.user.getIdToken(true);
 
         // Step 3: Verify administrator access through Cloudflare.
         const response = await fetch(
