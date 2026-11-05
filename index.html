@@ -73,7 +73,7 @@
     }
 
     #resendButton {
-      background: #ffffff;
+      background: white;
       color: #173b35;
       border: 1px solid #173b35;
       margin-top: 12px;
@@ -109,6 +109,7 @@
     <form id="loginForm">
 
       <label for="email">Email Address</label>
+
       <input
         id="email"
         type="email"
@@ -117,6 +118,7 @@
       >
 
       <label for="password">Password</label>
+
       <input
         id="password"
         type="password"
@@ -137,6 +139,7 @@
     <p id="message" role="status" aria-live="polite"></p>
 
   </div>
+
 
   <script type="module">
 
@@ -181,11 +184,8 @@
 
     const form = document.getElementById("loginForm");
     const message = document.getElementById("message");
-    const button = document.getElementById("loginButton");
+    const loginButton = document.getElementById("loginButton");
     const resendButton = document.getElementById("resendButton");
-
-
-    let verificationEmail = "";
 
 
     function showMessage(text, type = "error") {
@@ -198,14 +198,14 @@
 
     async function sendVerification(user) {
 
+      console.log("Attempting to send Firebase verification email.");
+
       await sendEmailVerification(user);
 
-      verificationEmail = user.email;
-
-      resendButton.hidden = false;
+      console.log("Firebase accepted the verification email request.");
 
       showMessage(
-        "Verification email sent! Check your inbox and spam folder. Click the verification link, then log in again.",
+        "Verification email request accepted! Check your inbox, spam and junk folders.",
         "success"
       );
 
@@ -227,16 +227,11 @@
           document.getElementById("password").value;
 
         if (!email || !password) {
-          showMessage(
-            "Enter your email address and password first."
-          );
+          showMessage("Enter your email address and password first.");
           return;
         }
 
-        showMessage(
-          "Checking your account...",
-          "success"
-        );
+        showMessage("Checking your account...", "success");
 
         const result = await signInWithEmailAndPassword(
           auth,
@@ -259,7 +254,7 @@
           resendButton.hidden = true;
 
           showMessage(
-            "Your email is already verified. Please click Login again.",
+            "Your email is already verified. Please log in again.",
             "success"
           );
 
@@ -275,17 +270,10 @@
 
         console.error("Resend verification error:", error);
 
-        if (error.code === "auth/too-many-requests") {
-          showMessage(
-            "Too many requests. Please wait before trying again."
-          );
-        } else if (error.code === "auth/invalid-credential") {
-          showMessage("Incorrect email or password.");
-        } else {
-          showMessage(
-            error.message || "Unable to send verification email."
-          );
-        }
+        showMessage(
+          getFriendlyError(error),
+          "error"
+        );
 
       } finally {
 
@@ -296,17 +284,51 @@
     });
 
 
+    // FIREBASE ERROR HANDLING
+
+    function getFriendlyError(error) {
+
+      console.error("Firebase error code:", error.code);
+
+      if (error.code === "auth/invalid-credential") {
+        return "Incorrect email or password.";
+      }
+
+      if (error.code === "auth/too-many-requests") {
+        return "Too many attempts. Please wait and try again.";
+      }
+
+      if (error.code === "auth/network-request-failed") {
+        return "Network error. Check your internet connection.";
+      }
+
+      if (error.code === "auth/user-disabled") {
+        return "This Firebase account has been disabled.";
+      }
+
+      if (error.code === "auth/unauthorized-continue-uri") {
+        return "Firebase rejected the verification redirect URL. Check authorized domains.";
+      }
+
+      if (error.code === "auth/operation-not-allowed") {
+        return "Email verification is not allowed by the current Firebase configuration.";
+      }
+
+      return error.message || "Something went wrong. Please try again.";
+
+    }
+
+
     // LOGIN PROCESS
 
     form.addEventListener("submit", async (event) => {
 
       event.preventDefault();
 
-      button.disabled = true;
+      loginButton.disabled = true;
       resendButton.hidden = true;
 
       showMessage("Checking login...", "success");
-
 
       try {
 
@@ -348,6 +370,8 @@
 
         if (currentUser.emailVerified !== true) {
 
+          resendButton.hidden = false;
+
           await sendVerification(currentUser);
 
           await signOut(auth);
@@ -371,14 +395,15 @@
           "success"
         );
 
-
         const backendResponse = await fetch(
           `${BACKEND_URL}/api/me`,
           {
             method: "GET",
+
             headers: {
               "Authorization": `Bearer ${idToken}`
             },
+
             cache: "no-store"
           }
         );
@@ -406,11 +431,6 @@
           backendResponse.status
         );
 
-        console.log(
-          "Cloudflare response message:",
-          data.error || "No error"
-        );
-
 
         // STEP 7: CHECK ADMIN AUTHORIZATION
 
@@ -436,55 +456,18 @@
 
         console.log("KONIS administrator login successful.");
 
-
       } catch (error) {
 
-        console.error(
-          "KONIS login error:",
-          error
+        console.error("KONIS login error:", error);
+
+        showMessage(
+          getFriendlyError(error),
+          "error"
         );
-
-
-        if (error.code === "auth/invalid-credential") {
-
-          showMessage("Incorrect email or password.");
-
-        } else if (
-          error.code === "auth/network-request-failed"
-        ) {
-
-          showMessage(
-            "Network error. Please check your internet connection."
-          );
-
-        } else if (
-          error.code === "auth/user-disabled"
-        ) {
-
-          showMessage(
-            "This Firebase account has been disabled."
-          );
-
-        } else if (
-          error.code === "auth/too-many-requests"
-        ) {
-
-          showMessage(
-            "Too many attempts. Please wait and try again."
-          );
-
-        } else {
-
-          showMessage(
-            error.message ||
-            "Login verification failed. Please try again."
-          );
-
-        }
 
       } finally {
 
-        button.disabled = false;
+        loginButton.disabled = false;
 
       }
 
