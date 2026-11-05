@@ -4,134 +4,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KONIS | Kovai Nagarathar Illaignar Sangam</title>
+  <title>KONIS Admin Login</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f7f5ef;
-      color: #252525;
-      line-height: 1.6;
+      background: #f4f2eb;
+      color: #243b35;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    header {
-      background: #173b35;
-      color: white;
-      padding: 28px 20px;
-      text-align: center;
-    }
-    header h1 { font-size: 28px; }
-    header p { color: #e4e8df; margin-top: 6px; }
-    nav {
-      background: #102c28;
-      padding: 12px;
-      text-align: center;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin: 0 14px;
-      font-size: 14px;
-    }
-    .hero {
-      text-align: center;
-      padding: 65px 20px;
-      background: linear-gradient(135deg, #e9e4d4, #f7f5ef);
-    }
-    .hero h2 { font-size: 32px; color: #173b35; }
-    .hero p { margin: 15px auto; max-width: 650px; }
-    .programs {
-      max-width: 1050px;
-      margin: 45px auto;
-      padding: 0 20px;
-    }
-    .programs h2 {
-      text-align: center;
-      color: #173b35;
-      margin-bottom: 25px;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-    .card {
+    .login-card {
       background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 3px 15px #00000012;
-      text-align: center;
+      width: 100%;
+      max-width: 420px;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 8px 35px #00000012;
     }
-    .card h3 { color: #173b35; margin-bottom: 10px; }
-    .status {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 5px 14px;
-      border-radius: 20px;
-      background: #eeeeee;
-      color: #555;
-      font-size: 13px;
+    h1 { text-align: center; margin-bottom: 5px; }
+    .subtitle { text-align: center; color: #777; margin-bottom: 30px; }
+    label { display: block; margin: 16px 0 7px; font-weight: bold; }
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
     }
-    footer {
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 22px;
       background: #173b35;
       color: white;
-      text-align: center;
-      padding: 22px;
-      margin-top: 55px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
+    button:disabled { opacity: .6; cursor: wait; }
+    #message { text-align: center; margin-top: 18px; font-size: 14px; }
   </style>
 </head>
 <body>
+  <div class="login-card">
+    <h1>KONIS</h1>
+    <p class="subtitle">Kovai Nagarathar Illaignar Sangam<br>Admin Portal</p>
 
-<header>
-  <h1>KONIS</h1>
-  <p>Kovai Nagarathar Illaignar Sangam</p>
-</header>
+    <form id="loginForm">
+      <label for="email">Email Address</label>
+      <input id="email" type="email" required autocomplete="username">
 
-<nav>
-  <a href="#home">Home</a>
-  <a href="#programs">Programmes</a>
-  <a href="#contact">Contact</a>
-</nav>
+      <label for="password">Password</label>
+      <input id="password" type="password" required autocomplete="current-password">
 
-<section class="hero" id="home">
-  <h2>Welcome to KONIS</h2>
-  <p>
-    Kovai Nagarathar Illaignar Sangam brings our community
-    together through cultural celebrations, traditional
-    programmes and meaningful connections.
-  </p>
-</section>
+      <button id="loginButton" type="submit">Login</button>
+    </form>
 
-<section class="programs" id="programs">
-  <h2>Our Programmes</h2>
-  <div class="cards">
-    <div class="card">
-      <h3>Pillaiyar Nombu</h3>
-      <p>Traditional community celebration.</p>
-      <span class="status">Registration status coming soon</span>
-    </div>
-    <div class="card">
-      <h3>Children Program</h3>
-      <p>Activities and competitions for children.</p>
-      <span class="status">Registration status coming soon</span>
-    </div>
-    <div class="card">
-      <h3>Vilakku Pooja</h3>
-      <p>A celebration of tradition and devotion.</p>
-      <span class="status">Registration status coming soon</span>
-    </div>
-    <div class="card">
-      <h3>Pongal Seeru</h3>
-      <p>Celebrating our culture and traditions.</p>
-      <span class="status">Registration status coming soon</span>
-    </div>
+    <p id="message" role="status"></p>
   </div>
-</section>
 
-<footer id="contact">
-  <p>Kovai Nagarathar Illaignar Sangam</p>
-  <p>Connecting our community through tradition and unity.</p>
-</footer>
+  <script type="module">
+    import { initializeApp } from
+      "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
+    import { getAuth, signInWithEmailAndPassword, signOut }
+      from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+    import { getFirestore, doc, getDoc }
+      from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVAmNCnNU9gS4KumlnUm2p9pfIStfRexI",
+      authDomain: "konis-registration.firebaseapp.com",
+      projectId: "konis-registration",
+      storageBucket: "konis-registration.firebasestorage.app",
+      messagingSenderId: "1035543929331",
+      appId: "1:1035543929331:web:de6f37e9e0a6e945053286",
+      measurementId: "G-20XB5CDPVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+    const button = document.getElementById("loginButton");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      message.textContent = "Checking login...";
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const result = await signInWithEmailAndPassword(
+          auth, email, password
+        );
+
+        const adminRef = doc(db, "admins", result.user.uid);
+        const adminSnapshot = await getDoc(adminRef);
+
+        if (!adminSnapshot.exists()) {
+          await signOut(auth);
+          message.textContent = "Access denied. You are not an authorised admin.";
+          return;
+        }
+
+        message.textContent = "Login successful! Admin access verified.";
+      } catch (error) {
+        console.error(error);
+        message.textContent = "Login failed. Check your email and password.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
