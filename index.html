@@ -4,9 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KONIS Admin Login</title>
+  <title>KONIS Admin Portal</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -29,8 +32,17 @@
       box-shadow: 0 8px 35px #00000012;
     }
 
-    h1 { text-align: center; margin-bottom: 5px; }
-    .subtitle { text-align: center; color: #777; margin-bottom: 30px; }
+    h1 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #777;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
 
     label {
       display: block;
@@ -58,38 +70,71 @@
       cursor: pointer;
     }
 
-    button:disabled { opacity: .6; cursor: wait; }
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
 
     #message {
       text-align: center;
       margin-top: 18px;
       font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .error {
+      color: #c0392b;
+    }
+
+    .success {
+      color: #218838;
     }
   </style>
 </head>
 
 <body>
+
   <div class="login-card">
+
     <h1>KONIS</h1>
+
     <p class="subtitle">
       Kovai Nagarathar Illaignar Sangam<br>
       Admin Portal
     </p>
 
     <form id="loginForm">
+
       <label for="email">Email Address</label>
-      <input id="email" type="email" required autocomplete="username">
+
+      <input
+        id="email"
+        type="email"
+        required
+        autocomplete="username"
+      >
 
       <label for="password">Password</label>
-      <input id="password" type="password" required autocomplete="current-password">
 
-      <button id="loginButton" type="submit">Login</button>
+      <input
+        id="password"
+        type="password"
+        required
+        autocomplete="current-password"
+      >
+
+      <button id="loginButton" type="submit">
+        Login
+      </button>
+
     </form>
 
-    <p id="message" role="status"></p>
+    <p id="message" role="status" aria-live="polite"></p>
+
   </div>
 
   <script type="module">
+
     import { initializeApp } from
       "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
@@ -97,7 +142,11 @@
       getAuth,
       signInWithEmailAndPassword,
       signOut
-    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+    } from
+      "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+
+    // FIREBASE CONFIGURATION
 
     const firebaseConfig = {
       apiKey: "AIzaSyCVAmNCnNU9gS4KumlnUm2p9pfIStfRexI",
@@ -109,84 +158,229 @@
       measurementId: "G-20XB5CDPVM"
     };
 
+
+    // CLOUDFLARE BACKEND
+
     const BACKEND_URL =
       "https://konis-backend.ramakrishnansm07.workers.dev";
 
+
+    // INITIALIZE FIREBASE
+
     const app = initializeApp(firebaseConfig);
+
     const auth = getAuth(app);
 
+
+    // HTML ELEMENTS
+
     const form = document.getElementById("loginForm");
+
     const message = document.getElementById("message");
+
     const button = document.getElementById("loginButton");
 
+
+    function showMessage(text, type = "error") {
+
+      message.textContent = text;
+
+      message.className = type;
+
+    }
+
+
+    // LOGIN PROCESS
+
     form.addEventListener("submit", async (event) => {
+
       event.preventDefault();
 
       button.disabled = true;
-      message.textContent = "Checking login...";
+
+      showMessage("Checking login...", "success");
+
 
       try {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
 
-        // Step 1: Verify Firebase email and password.
+        const email =
+          document.getElementById("email").value.trim();
+
+        const password =
+          document.getElementById("password").value;
+
+
+        // STEP 1: FIREBASE LOGIN
+
         const result = await signInWithEmailAndPassword(
           auth,
           email,
           password
         );
 
-        // Step 2: Get Firebase ID token.
-       await result.user.reload();
+        console.log("Firebase login successful.");
 
-console.log(
-  "Firebase emailVerified after reload:",
-  result.user.emailVerified
-);
 
-const idToken = await result.user.getIdToken(true);
+        // STEP 2: REFRESH FIREBASE USER
 
-        // Step 3: Verify administrator access through Cloudflare.
-        const response = await fetch(
+        await result.user.reload();
+
+        const currentUser = auth.currentUser;
+
+        if (!currentUser) {
+          throw new Error("Firebase user session unavailable.");
+        }
+
+        console.log(
+          "Firebase emailVerified after reload:",
+          currentUser.emailVerified
+        );
+
+
+        // STEP 3: CHECK EMAIL VERIFICATION
+
+        if (currentUser.emailVerified !== true) {
+
+          await signOut(auth);
+
+          showMessage(
+            "Your Firebase email is not verified. Please verify your email and try again."
+          );
+
+          return;
+
+        }
+
+
+        // STEP 4: FORCE REFRESH ID TOKEN
+
+        const idToken = await currentUser.getIdToken(true);
+
+        console.log("Fresh Firebase ID token generated.");
+
+
+        // STEP 5: VERIFY ADMIN ACCESS WITH CLOUDFLARE
+
+        showMessage(
+          "Verifying administrator access...",
+          "success"
+        );
+
+
+        const backendResponse = await fetch(
           `${BACKEND_URL}/api/me`,
           {
             method: "GET",
+
             headers: {
               "Authorization": `Bearer ${idToken}`
-            }
+            },
+
+            cache: "no-store"
           }
         );
 
-        const data = await response.json();
 
-        if (!response.ok) {
-          await signOut(auth);
+        // STEP 6: READ BACKEND RESPONSE
 
-          message.textContent =
-            data.error || "Administrator access denied.";
+        let data;
 
-          return;
+        try {
+
+          data = await backendResponse.json();
+
+        } catch {
+
+          throw new Error(
+            "Cloudflare returned an invalid response."
+          );
+
         }
 
-        message.textContent =
-          "Login successful! Welcome to KONIS Admin Portal.";
+
+        console.log(
+          "Cloudflare response status:",
+          backendResponse.status
+        );
+
+        console.log(
+          "Cloudflare response message:",
+          data.error || "No error"
+        );
+
+
+        // STEP 7: CHECK ADMIN AUTHORIZATION
+
+        if (!backendResponse.ok) {
+
+          await signOut(auth);
+
+          showMessage(
+            data.error ||
+            "Administrator access denied."
+          );
+
+          return;
+
+        }
+
+
+        // STEP 8: SUCCESS
+
+        showMessage(
+          "Login successful! Welcome to KONIS Admin Portal.",
+          "success"
+        );
+
+        console.log("KONIS administrator login successful.");
+
 
       } catch (error) {
-        console.error(error);
+
+        console.error(
+          "KONIS login error:",
+          error.message
+        );
+
 
         if (error.code === "auth/invalid-credential") {
-          message.textContent = "Incorrect email or password.";
-        } else if (error.code === "auth/network-request-failed") {
-          message.textContent = "Network error. Please try again.";
+
+          showMessage("Incorrect email or password.");
+
+        } else if (
+          error.code === "auth/network-request-failed"
+        ) {
+
+          showMessage(
+            "Network error. Please check your internet connection."
+          );
+
+        } else if (
+          error.code === "auth/user-disabled"
+        ) {
+
+          showMessage(
+            "This Firebase account has been disabled."
+          );
+
         } else {
-          message.textContent =
-            "Login verification failed. Please try again.";
+
+          showMessage(
+            error.message ||
+            "Login verification failed. Please try again."
+          );
+
         }
 
       } finally {
+
         button.disabled = false;
+
       }
+
     });
+
   </script>
+
 </body>
 </html>
