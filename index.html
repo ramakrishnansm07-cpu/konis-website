@@ -1,102 +1,277 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KONIS Admin Portal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONIS Admin Portal</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+* { box-sizing: border-box; }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f2eb;
-      color: #243b35;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f2eb;
+  color: #243b35;
+}
 
-    .login-card {
-      background: white;
-      width: 100%;
-      max-width: 420px;
-      padding: 35px;
-      border-radius: 16px;
-      box-shadow: 0 8px 35px #00000012;
-    }
+button, input, select { font: inherit; }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 5px;
-    }
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 17px;
+  cursor: pointer;
+  background: #173b35;
+  color: white;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 30px;
-      line-height: 1.5;
-    }
+button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
 
-    label {
-      display: block;
-      margin: 16px 0 7px;
-      font-weight: bold;
-    }
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 7px;
+}
 
-    input {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-    }
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 15px;
+}
 
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 22px;
-      background: #173b35;
-      color: white;
-      border: 0;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 35px #00000012;
+}
 
-    #resendButton {
-      background: white;
-      color: #173b35;
-      border: 1px solid #173b35;
-      margin-top: 12px;
-    }
+h1, .subtitle { text-align: center; }
 
-    #resendButton[hidden] {
-      display: none;
-    }
+.subtitle {
+  color: #777;
+  line-height: 1.5;
+  margin-bottom: 25px;
+}
 
-    #message {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+.login-card button {
+  width: 100%;
+  margin-top: 20px;
+}
 
-    .error { color: #c0392b; }
-    .success { color: #218838; }
-  </style>
+#resendButton {
+  background: white;
+  color: #173b35;
+  border: 1px solid #173b35;
+  margin-top: 10px;
+}
+
+#resendButton[hidden] { display: none; }
+
+#message {
+  text-align: center;
+  line-height: 1.5;
+  font-size: 14px;
+  margin-top: 18px;
+}
+
+.error { color: #c0392b; }
+.success { color: #218838; }
+
+#dashboard { display: none; }
+
+header {
+  background: #173b35;
+  color: white;
+  padding: 22px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  margin: 0;
+  text-align: left;
+}
+
+header p {
+  margin: 6px 0 0;
+  color: #d4e3dc;
+}
+
+header button {
+  background: white;
+  color: #173b35;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 18px 40px;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 13px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 20px #0000000a;
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 21px;
+}
+
+.status-banner {
+  background: #e7efe9;
+  border-radius: 10px;
+  padding: 17px;
+  margin-bottom: 20px;
+}
+
+.status-banner strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 7px;
+}
+
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.event-card {
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+  padding: 17px;
+}
+
+.event-card.active {
+  border: 2px solid #218838;
+  background: #f2faf3;
+}
+
+.event-card h3 {
+  margin: 0 0 12px;
+}
+
+.event-status {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.open-status { color: #218838; }
+.closed-status { color: #c0392b; }
+
+.event-card button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.range-fields label { font-size: 13px; }
+
+.small-note {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.danger {
+  background: #b83232;
+}
+
+.secondary {
+  background: #e8eee9;
+  color: #173b35;
+}
+
+.admin-form {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.admin-form .field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-form button {
+  margin-top: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid #eee;
+  overflow-wrap: anywhere;
+}
+
+th { background: #f5f6f3; }
+
+.admin-table-wrap { overflow-x: auto; }
+
+#dashboardMessage {
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+footer {
+  text-align: center;
+  color: #888;
+  padding: 15px;
+  font-size: 13px;
+}
+
+@media(max-width: 600px) {
+  .card { padding: 17px; }
+  header { padding: 18px; }
+  .range-fields { grid-template-columns: 1fr 1fr; }
+  th, td { font-size: 13px; }
+}
+</style>
 </head>
 
 <body>
 
+<!-- LOGIN PAGE -->
+
+<section id="loginPage" class="login-page">
   <div class="login-card">
 
     <h1>KONIS</h1>
@@ -109,26 +284,12 @@
     <form id="loginForm">
 
       <label for="email">Email Address</label>
-
-      <input
-        id="email"
-        type="email"
-        required
-        autocomplete="username"
-      >
+      <input id="email" type="email" required autocomplete="username">
 
       <label for="password">Password</label>
+      <input id="password" type="password" required autocomplete="current-password">
 
-      <input
-        id="password"
-        type="password"
-        required
-        autocomplete="current-password"
-      >
-
-      <button id="loginButton" type="submit">
-        Login
-      </button>
+      <button id="loginButton" type="submit">Login</button>
 
     </form>
 
@@ -139,341 +300,905 @@
     <p id="message" role="status" aria-live="polite"></p>
 
   </div>
+</section>
 
 
-  <script type="module">
+<!-- ADMIN DASHBOARD -->
 
-    import { initializeApp } from
-      "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+<section id="dashboard">
 
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      sendEmailVerification
-    } from
-      "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+  <header>
+    <div>
+      <h1>KONIS Admin Portal</h1>
+      <p>Kovai Nagarathar Illaignar Sangam</p>
+    </div>
 
+    <button id="logoutButton">Logout</button>
+  </header>
 
-    // FIREBASE CONFIGURATION
+  <main class="container">
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCVAmNCnNU9gS4KumlnUm2p9pfIStfRexI",
-      authDomain: "konis-registration.firebaseapp.com",
-      projectId: "konis-registration",
-      storageBucket: "konis-registration.firebasestorage.app",
-      messagingSenderId: "1035543929331",
-      appId: "1:1035543929331:web:de6f37e9e0a6e945053286",
-      measurementId: "G-20XB5CDPVM"
-    };
+    <div class="card">
+      <h2>Welcome, Administrator</h2>
+      <p id="adminEmail" class="small-note"></p>
+
+      <div id="dashboardMessage" role="status" aria-live="polite"></div>
+    </div>
 
 
-    // CLOUDFLARE BACKEND
+    <!-- EVENT MANAGEMENT -->
 
-    const BACKEND_URL =
-      "https://konis-backend.ramakrishnansm07.workers.dev";
+    <div class="card">
+
+      <h2>Event Management</h2>
+
+      <div class="status-banner">
+        <strong id="activeEventName">Loading...</strong>
+        <span id="activeEventDetails">Checking event status...</span>
+      </div>
+
+      <p class="small-note">
+        Only one event can accept registrations at a time.
+        Opening another event automatically closes the currently
+        active event and its token range.
+      </p>
+
+      <div id="eventGrid" class="event-grid"></div>
+
+      <button id="closeAllButton" class="danger">
+        Close Current Event
+      </button>
+
+    </div>
 
 
-    // INITIALIZE FIREBASE
+    <!-- ADMIN MANAGEMENT -->
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    <div class="card">
+
+      <h2>Administrator Management</h2>
+
+      <p class="small-note">
+        Add an administrator using their Firebase account email.
+        They must have a verified Firebase email address before
+        they can log in and claim the invitation.
+      </p>
+
+      <form id="inviteForm" class="admin-form">
+
+        <div class="field">
+          <label for="inviteEmail">New Admin Email</label>
+          <input
+            id="inviteEmail"
+            type="email"
+            placeholder="example@gmail.com"
+            required
+          >
+        </div>
+
+        <button id="inviteButton" type="submit">
+          Invite Admin
+        </button>
+
+      </form>
+
+      <div class="admin-table-wrap">
+
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="adminTable">
+            <tr><td colspan="3">Loading administrators...</td></tr>
+          </tbody>
+        </table>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    KONIS Admin Portal
+  </footer>
+
+</section>
 
 
-    // HTML ELEMENTS
+<script type="module">
 
-    const form = document.getElementById("loginForm");
-    const message = document.getElementById("message");
-    const loginButton = document.getElementById("loginButton");
-    const resendButton = document.getElementById("resendButton");
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification
+} from
+  "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 
-    function showMessage(text, type = "error") {
-      message.textContent = text;
-      message.className = type;
+// --------------------------------------------------
+// CONFIGURATION
+// --------------------------------------------------
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVAmNCnNU9gS4KumlnUm2p9pfIStfRexI",
+  authDomain: "konis-registration.firebaseapp.com",
+  projectId: "konis-registration",
+  storageBucket: "konis-registration.firebasestorage.app",
+  messagingSenderId: "1035543929331",
+  appId: "1:1035543929331:web:de6f37e9e0a6e945053286",
+  measurementId: "G-20XB5CDPVM"
+};
+
+const BACKEND_URL =
+  "https://konis-backend.ramakrishnansm07.workers.dev";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const EVENTS = [
+  {
+    id: "pillaiyar_nombu",
+    name: "Pillaiyar Nombu",
+    prefix: "PN"
+  },
+  {
+    id: "children_program",
+    name: "Children Program",
+    prefix: null
+  },
+  {
+    id: "vilakku_pooja",
+    name: "Vilakku Pooja",
+    prefix: "VP"
+  },
+  {
+    id: "pongal_seeru",
+    name: "Pongal Seeru",
+    prefix: "PS"
+  }
+];
+
+let currentAdmin = null;
+let activeEvent = null;
+
+
+// --------------------------------------------------
+// ELEMENTS
+// --------------------------------------------------
+
+const loginPage = document.getElementById("loginPage");
+const dashboard = document.getElementById("dashboard");
+const loginForm = document.getElementById("loginForm");
+const loginButton = document.getElementById("loginButton");
+const resendButton = document.getElementById("resendButton");
+const message = document.getElementById("message");
+const dashboardMessage = document.getElementById("dashboardMessage");
+
+
+// --------------------------------------------------
+// MESSAGES
+// --------------------------------------------------
+
+function showLoginMessage(text, type = "error") {
+  message.textContent = text;
+  message.className = type;
+}
+
+function showDashboardMessage(text, type = "success") {
+  dashboardMessage.textContent = text;
+  dashboardMessage.className = type;
+}
+
+function friendlyError(error) {
+  console.error(error);
+
+  const code = error.code || "";
+
+  if (code === "auth/invalid-credential") {
+    return "Incorrect email or password.";
+  }
+
+  if (code === "auth/too-many-requests") {
+    return "Too many attempts. Please try again later.";
+  }
+
+  if (code === "auth/network-request-failed") {
+    return "Network error. Check your internet connection.";
+  }
+
+  if (code === "auth/user-disabled") {
+    return "This account has been disabled.";
+  }
+
+  return error.message || "Something went wrong.";
+}
+
+
+// --------------------------------------------------
+// BACKEND API HELPER
+// --------------------------------------------------
+
+async function apiRequest(path, method = "GET", body = null) {
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("Please log in again.");
+  }
+
+  const token = await user.getIdToken();
+
+  const options = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${token}`
+    },
+    cache: "no-store"
+  };
+
+  if (body !== null) {
+    options.headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
+  }
+
+  const result = await fetch(
+    `${BACKEND_URL}${path}`,
+    options
+  );
+
+  let data;
+
+  try {
+    data = await result.json();
+  } catch {
+    throw new Error("Backend returned an invalid response.");
+  }
+
+  if (!result.ok) {
+    throw new Error(data.error || `Request failed (${result.status})`);
+  }
+
+  return data;
+}
+
+
+// --------------------------------------------------
+// LOGIN
+// --------------------------------------------------
+
+loginForm.addEventListener("submit", async (event) => {
+
+  event.preventDefault();
+
+  loginButton.disabled = true;
+  resendButton.hidden = true;
+
+  showLoginMessage("Checking login...", "success");
+
+  try {
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    const result = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    await result.user.reload();
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("Firebase session unavailable.");
     }
 
-
-    // SEND VERIFICATION EMAIL
-
-    async function sendVerification(user) {
-
-      console.log("Attempting to send Firebase verification email.");
+    if (!user.emailVerified) {
 
       await sendEmailVerification(user);
 
-      console.log("Firebase accepted the verification email request.");
+      resendButton.hidden = false;
 
-      showMessage(
-        "Verification email request accepted! Check your inbox, spam and junk folders.",
+      await signOut(auth);
+
+      showLoginMessage(
+        "Your email is not verified. A verification email has been sent. Verify it and log in again.",
+        "error"
+      );
+
+      return;
+    }
+
+    showLoginMessage(
+      "Verifying administrator access...",
+      "success"
+    );
+
+    // First check whether the user is already an admin.
+    let meResponse;
+
+    try {
+
+      meResponse = await apiRequest("/api/me");
+
+    } catch (error) {
+
+      // A verified user who is not yet an admin may have
+      // an invitation waiting to be claimed.
+      if (!String(error.message).includes("Admin access denied")) {
+        throw error;
+      }
+
+      await apiRequest(
+        "/api/admins/claim",
+        "POST",
+        {}
+      );
+
+      meResponse = await apiRequest("/api/me");
+    }
+
+    currentAdmin = meResponse.admin;
+
+    await showDashboard();
+
+  } catch (error) {
+
+    console.error("Login error:", error);
+
+    showLoginMessage(
+      friendlyError(error),
+      "error"
+    );
+
+    if (auth.currentUser) {
+      await signOut(auth);
+    }
+
+  } finally {
+
+    loginButton.disabled = false;
+
+  }
+
+});
+
+
+// --------------------------------------------------
+// RESEND VERIFICATION EMAIL
+// --------------------------------------------------
+
+resendButton.addEventListener("click", async () => {
+
+  resendButton.disabled = true;
+
+  try {
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+      throw new Error("Enter your email and password first.");
+    }
+
+    const result = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    await result.user.reload();
+
+    if (auth.currentUser.emailVerified) {
+
+      await signOut(auth);
+
+      resendButton.hidden = true;
+
+      showLoginMessage(
+        "Your email is already verified. Please log in again.",
         "success"
       );
 
+      return;
     }
 
+    await sendEmailVerification(auth.currentUser);
 
-    // RESEND VERIFICATION EMAIL
+    await signOut(auth);
 
-    resendButton.addEventListener("click", async () => {
+    showLoginMessage(
+      "Verification email sent. Check your inbox and spam folder.",
+      "success"
+    );
 
-      resendButton.disabled = true;
+  } catch (error) {
 
-      try {
+    showLoginMessage(friendlyError(error));
 
-        const email =
-          document.getElementById("email").value.trim();
+  } finally {
 
-        const password =
-          document.getElementById("password").value;
+    resendButton.disabled = false;
 
-        if (!email || !password) {
-          showMessage("Enter your email address and password first.");
-          return;
-        }
+  }
 
-        showMessage("Checking your account...", "success");
-
-        const result = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
-        await result.user.reload();
-
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          throw new Error("Firebase session unavailable.");
-        }
-
-        if (currentUser.emailVerified === true) {
-
-          await signOut(auth);
-
-          resendButton.hidden = true;
-
-          showMessage(
-            "Your email is already verified. Please log in again.",
-            "success"
-          );
-
-          return;
-
-        }
-
-        await sendVerification(currentUser);
-
-        await signOut(auth);
-
-      } catch (error) {
-
-        console.error("Resend verification error:", error);
-
-        showMessage(
-          getFriendlyError(error),
-          "error"
-        );
-
-      } finally {
-
-        resendButton.disabled = false;
-
-      }
-
-    });
+});
 
 
-    // FIREBASE ERROR HANDLING
+// --------------------------------------------------
+// SHOW DASHBOARD
+// --------------------------------------------------
 
-    function getFriendlyError(error) {
+async function showDashboard() {
 
-      console.error("Firebase error code:", error.code);
+  loginPage.style.display = "none";
+  dashboard.style.display = "block";
 
-      if (error.code === "auth/invalid-credential") {
-        return "Incorrect email or password.";
-      }
+  document.getElementById("adminEmail").textContent =
+    currentAdmin.email || "";
 
-      if (error.code === "auth/too-many-requests") {
-        return "Too many attempts. Please wait and try again.";
-      }
+  await refreshEvents();
+  await refreshAdmins();
 
-      if (error.code === "auth/network-request-failed") {
-        return "Network error. Check your internet connection.";
-      }
+}
 
-      if (error.code === "auth/user-disabled") {
-        return "This Firebase account has been disabled.";
-      }
 
-      if (error.code === "auth/unauthorized-continue-uri") {
-        return "Firebase rejected the verification redirect URL. Check authorized domains.";
-      }
+// --------------------------------------------------
+// EVENT STATUS
+// --------------------------------------------------
 
-      if (error.code === "auth/operation-not-allowed") {
-        return "Email verification is not allowed by the current Firebase configuration.";
-      }
+async function refreshEvents() {
 
-      return error.message || "Something went wrong. Please try again.";
+  try {
+
+    const result = await fetch(
+      `${BACKEND_URL}/api/events/active`,
+      { cache: "no-store" }
+    );
+
+    if (!result.ok) {
+      throw new Error("Could not retrieve event status.");
+    }
+
+    const data = await result.json();
+
+    activeEvent = data.active_event;
+
+    document.getElementById("activeEventName").textContent =
+      data.active_event_name || "No Event Currently Open";
+
+    if (data.token_range) {
+
+      const range = data.token_range;
+
+      const remaining = range.remaining;
+
+      document.getElementById("activeEventDetails").textContent =
+        `Tokens: ${range.prefix}-${String(range.start_number).padStart(4, "0")} to ${range.prefix}-${String(range.end_number).padStart(4, "0")} | Next: ${range.next_number} | Remaining: ${remaining}`;
+
+    } else {
+
+      document.getElementById("activeEventDetails").textContent =
+        activeEvent
+          ? "Registration is open. No token range is required."
+          : "All event registrations are currently closed.";
 
     }
 
+    renderEvents();
 
-    // LOGIN PROCESS
+  } catch (error) {
 
-    form.addEventListener("submit", async (event) => {
+    showDashboardMessage(error.message, "error");
 
-      event.preventDefault();
+  }
 
-      loginButton.disabled = true;
-      resendButton.hidden = true;
-
-      showMessage("Checking login...", "success");
-
-      try {
-
-        const email =
-          document.getElementById("email").value.trim();
-
-        const password =
-          document.getElementById("password").value;
+}
 
 
-        // STEP 1: FIREBASE LOGIN
+// --------------------------------------------------
+// RENDER EVENT CARDS
+// --------------------------------------------------
 
-        const result = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+function renderEvents() {
 
-        console.log("Firebase login successful.");
+  const grid = document.getElementById("eventGrid");
+  grid.replaceChildren();
 
+  EVENTS.forEach(event => {
 
-        // STEP 2: REFRESH FIREBASE USER
+    const isOpen = activeEvent === event.id;
 
-        await result.user.reload();
+    const card = document.createElement("div");
+    card.className = "event-card" + (isOpen ? " active" : "");
 
-        const currentUser = auth.currentUser;
+    const heading = document.createElement("h3");
+    heading.textContent = event.name;
 
-        if (!currentUser) {
-          throw new Error("Firebase user session unavailable.");
-        }
+    const status = document.createElement("div");
+    status.className = "event-status " +
+      (isOpen ? "open-status" : "closed-status");
 
-        console.log(
-          "Firebase emailVerified after reload:",
-          currentUser.emailVerified
-        );
+    status.textContent = isOpen
+      ? "● OPEN"
+      : "● CLOSED";
 
+    card.append(heading, status);
 
-        // STEP 3: CHECK EMAIL VERIFICATION
+    if (event.prefix) {
 
-        if (currentUser.emailVerified !== true) {
+      const fields = document.createElement("div");
+      fields.className = "range-fields";
 
-          resendButton.hidden = false;
+      const startLabel = document.createElement("label");
+      startLabel.textContent = "Start number";
 
-          await sendVerification(currentUser);
+      const startInput = document.createElement("input");
+      startInput.type = "number";
+      startInput.min = "1";
+      startInput.max = "99999999";
+      startInput.id = `start-${event.id}`;
+      startInput.placeholder = "Example: 25";
 
-          await signOut(auth);
+      const endLabel = document.createElement("label");
+      endLabel.textContent = "End number";
 
-          return;
+      const endInput = document.createElement("input");
+      endInput.type = "number";
+      endInput.min = "1";
+      endInput.max = "99999999";
+      endInput.id = `end-${event.id}`;
+      endInput.placeholder = "Example: 100";
 
-        }
+      startLabel.appendChild(startInput);
+      endLabel.appendChild(endInput);
 
+      fields.append(startLabel, endLabel);
+      card.appendChild(fields);
 
-        // STEP 4: FORCE REFRESH ID TOKEN
+      const prefixNote = document.createElement("p");
+      prefixNote.className = "small-note";
+      prefixNote.textContent =
+        `Token format: ${event.prefix}-0025`;
 
-        const idToken = await currentUser.getIdToken(true);
+      card.appendChild(prefixNote);
+    } else {
 
-        console.log("Fresh Firebase ID token generated.");
+      const note = document.createElement("p");
+      note.className = "small-note";
+      note.textContent = "No token numbers required.";
+      card.appendChild(note);
 
+    }
 
-        // STEP 5: VERIFY ADMIN ACCESS WITH CLOUDFLARE
+    const button = document.createElement("button");
 
-        showMessage(
-          "Verifying administrator access...",
-          "success"
-        );
+    button.textContent = isOpen
+      ? "Currently Open"
+      : "Open Registration";
 
-        const backendResponse = await fetch(
-          `${BACKEND_URL}/api/me`,
-          {
-            method: "GET",
+    button.disabled = isOpen;
 
-            headers: {
-              "Authorization": `Bearer ${idToken}`
-            },
+    button.addEventListener("click", () => openEvent(event));
 
-            cache: "no-store"
-          }
-        );
+    card.appendChild(button);
 
+    grid.appendChild(card);
 
-        // STEP 6: READ BACKEND RESPONSE
+  });
 
-        let data;
-
-        try {
-
-          data = await backendResponse.json();
-
-        } catch {
-
-          throw new Error(
-            "Cloudflare returned an invalid response."
-          );
-
-        }
-
-
-        console.log(
-          "Cloudflare response status:",
-          backendResponse.status
-        );
-
-
-        // STEP 7: CHECK ADMIN AUTHORIZATION
-
-        if (!backendResponse.ok) {
-
-          await signOut(auth);
-
-          showMessage(
-            data.error || "Administrator access denied."
-          );
-
-          return;
-
-        }
+}
 
 
-        // STEP 8: SUCCESS
+// --------------------------------------------------
+// OPEN EVENT
+// --------------------------------------------------
 
-        showMessage(
-          "Login successful! Welcome to KONIS Admin Portal.",
-          "success"
-        );
+async function openEvent(event) {
 
-        console.log("KONIS administrator login successful.");
+  try {
 
-      } catch (error) {
+    let body = {
+      active_event: event.id
+    };
 
-        console.error("KONIS login error:", error);
+    if (event.prefix) {
 
-        showMessage(
-          getFriendlyError(error),
+      const start = Number(
+        document.getElementById(`start-${event.id}`).value
+      );
+
+      const end = Number(
+        document.getElementById(`end-${event.id}`).value
+      );
+
+      if (
+        !Number.isSafeInteger(start) ||
+        !Number.isSafeInteger(end) ||
+        start < 1 ||
+        end < start ||
+        end > 99999999
+      ) {
+        showDashboardMessage(
+          "Enter valid start and end token numbers.",
           "error"
         );
+        return;
+      }
 
-      } finally {
+      body.start_number = start;
+      body.end_number = end;
 
-        loginButton.disabled = false;
+    }
+
+    if (!confirm(
+      `Open registration for ${event.name}?` +
+      (activeEvent
+        ? "\nThe currently active event will be closed."
+        : "")
+    )) {
+      return;
+    }
+
+    showDashboardMessage("Opening event...", "success");
+
+    const result = await apiRequest(
+      "/api/events/active",
+      "POST",
+      body
+    );
+
+    showDashboardMessage(result.message, "success");
+
+    await refreshEvents();
+
+  } catch (error) {
+
+    showDashboardMessage(error.message, "error");
+
+  }
+
+}
+
+
+// --------------------------------------------------
+// CLOSE CURRENT EVENT
+// --------------------------------------------------
+
+document.getElementById("closeAllButton").addEventListener(
+  "click",
+  async () => {
+
+    if (!activeEvent) {
+      showDashboardMessage(
+        "No event is currently open.",
+        "error"
+      );
+      return;
+    }
+
+    if (!confirm("Close the currently active event?")) {
+      return;
+    }
+
+    try {
+
+      const result = await apiRequest(
+        "/api/events/active",
+        "POST",
+        { active_event: null }
+      );
+
+      showDashboardMessage(result.message, "success");
+
+      await refreshEvents();
+
+    } catch (error) {
+
+      showDashboardMessage(error.message, "error");
+
+    }
+
+  }
+);
+
+
+// --------------------------------------------------
+// LIST ADMINS
+// --------------------------------------------------
+
+async function refreshAdmins() {
+
+  const table = document.getElementById("adminTable");
+  table.replaceChildren();
+
+  try {
+
+    const result = await apiRequest("/api/admins");
+
+    if (!result.admins || result.admins.length === 0) {
+
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+
+      cell.colSpan = 3;
+      cell.textContent = "No administrators found.";
+
+      row.appendChild(cell);
+      table.appendChild(row);
+
+      return;
+    }
+
+    result.admins.forEach(admin => {
+
+      const row = document.createElement("tr");
+
+      const emailCell = document.createElement("td");
+      emailCell.textContent = admin.email;
+
+      const roleCell = document.createElement("td");
+      roleCell.textContent = admin.role;
+
+      const actionCell = document.createElement("td");
+
+      if (admin.firebase_uid === currentAdmin.firebase_uid) {
+
+        actionCell.textContent = "You";
+
+      } else {
+
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.className = "danger";
+
+        removeButton.addEventListener("click", () => {
+          removeAdmin(admin);
+        });
+
+        actionCell.appendChild(removeButton);
 
       }
 
+      row.append(emailCell, roleCell, actionCell);
+      table.appendChild(row);
+
     });
 
-  </script>
+  } catch (error) {
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+
+    cell.colSpan = 3;
+    cell.textContent = error.message;
+
+    row.appendChild(cell);
+    table.appendChild(row);
+
+  }
+
+}
+
+
+// --------------------------------------------------
+// INVITE ADMIN
+// --------------------------------------------------
+
+document.getElementById("inviteForm").addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+    const button = document.getElementById("inviteButton");
+
+    button.disabled = true;
+
+    try {
+
+      const email = document.getElementById("inviteEmail")
+        .value.trim().toLowerCase();
+
+      const result = await apiRequest(
+        "/api/admins/invite",
+        "POST",
+        { email }
+      );
+
+      showDashboardMessage(
+        result.message,
+        "success"
+      );
+
+      document.getElementById("inviteEmail").value = "";
+
+    } catch (error) {
+
+      showDashboardMessage(error.message, "error");
+
+    } finally {
+
+      button.disabled = false;
+
+    }
+
+  }
+);
+
+
+// --------------------------------------------------
+// REMOVE ADMIN
+// --------------------------------------------------
+
+async function removeAdmin(admin) {
+
+  if (!confirm(
+    `Are you sure you want to remove ${admin.email} as an administrator?`
+  )) {
+    return;
+  }
+
+  try {
+
+    const result = await apiRequest(
+      "/api/admins/remove",
+      "POST",
+      { firebase_uid: admin.firebase_uid }
+    );
+
+    showDashboardMessage(result.message, "success");
+
+    await refreshAdmins();
+
+  } catch (error) {
+
+    showDashboardMessage(error.message, "error");
+
+  }
+
+}
+
+
+// --------------------------------------------------
+// LOGOUT
+// --------------------------------------------------
+
+document.getElementById("logoutButton").addEventListener(
+  "click",
+  async () => {
+
+    if (!confirm("Are you sure you want to log out?")) {
+      return;
+    }
+
+    await signOut(auth);
+
+    currentAdmin = null;
+    activeEvent = null;
+
+    dashboard.style.display = "none";
+    loginPage.style.display = "flex";
+
+    loginForm.reset();
+
+    showLoginMessage("You have logged out.", "success");
+
+  }
+);
+
+</script>
 
 </body>
 </html>
