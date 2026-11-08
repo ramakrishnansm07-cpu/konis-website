@@ -83,10 +83,7 @@ h1, .subtitle { text-align: center; }
   margin-top: 10px;
 }
 
-#resendButton[hidden],
-[hidden] {
-  display: none !important;
-}
+[hidden] { display: none !important; }
 
 #message {
   text-align: center;
@@ -194,8 +191,14 @@ header button {
   margin-top: 10px;
 }
 
-.close-event-button {
+.close-event-button,
+.danger {
   background: #b83232;
+}
+
+.secondary {
+  background: #e8eee9;
+  color: #173b35;
 }
 
 .range-fields {
@@ -219,15 +222,7 @@ header button {
   font-size: 13px;
   line-height: 1.7;
   overflow-wrap: anywhere;
-}
-
-.danger {
-  background: #b83232;
-}
-
-.secondary {
-  background: #e8eee9;
-  color: #173b35;
+  white-space: pre-line;
 }
 
 .admin-form {
@@ -242,9 +237,7 @@ header button {
   min-width: 200px;
 }
 
-.admin-form button {
-  margin-top: 15px;
-}
+.admin-form button { margin-top: 15px; }
 
 table {
   width: 100%;
@@ -287,8 +280,6 @@ footer {
 
 <body>
 
-<!-- LOGIN PAGE -->
-
 <section id="loginPage" class="login-page">
   <div class="login-card">
 
@@ -300,33 +291,16 @@ footer {
     </p>
 
     <form id="loginForm">
-
       <label for="email">Email Address</label>
-      <input
-        id="email"
-        type="email"
-        required
-        autocomplete="username"
-      >
+      <input id="email" type="email" required autocomplete="username">
 
       <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        required
-        autocomplete="current-password"
-      >
+      <input id="password" type="password" required autocomplete="current-password">
 
-      <button id="loginButton" type="submit">
-        Login
-      </button>
-
+      <button id="loginButton" type="submit">Login</button>
     </form>
 
-    <!-- CREATE ACCOUNT -->
-
     <div id="signupSection" hidden>
-
       <h2>Create Account</h2>
 
       <p class="subtitle">
@@ -334,55 +308,24 @@ footer {
       </p>
 
       <form id="signupForm">
-
         <label for="signupEmail">Invited Email Address</label>
-        <input
-          id="signupEmail"
-          type="email"
-          required
-          autocomplete="email"
-        >
+        <input id="signupEmail" type="email" required autocomplete="email">
 
         <label for="signupPassword">Create Password</label>
-        <input
-          id="signupPassword"
-          type="password"
-          minlength="6"
-          required
-          autocomplete="new-password"
-        >
+        <input id="signupPassword" type="password" minlength="6" required autocomplete="new-password">
 
         <label for="confirmPassword">Confirm Password</label>
-        <input
-          id="confirmPassword"
-          type="password"
-          minlength="6"
-          required
-          autocomplete="new-password"
-        >
+        <input id="confirmPassword" type="password" minlength="6" required autocomplete="new-password">
 
-        <button id="signupButton" type="submit">
-          Create Account
-        </button>
-
+        <button id="signupButton" type="submit">Create Account</button>
       </form>
-
     </div>
 
-    <button
-      id="showSignupButton"
-      type="button"
-      class="secondary"
-    >
+    <button id="showSignupButton" type="button" class="secondary">
       Create Account
     </button>
 
-    <button
-      id="showLoginButton"
-      type="button"
-      class="secondary"
-      hidden
-    >
+    <button id="showLoginButton" type="button" class="secondary" hidden>
       Back to Login
     </button>
 
@@ -391,12 +334,9 @@ footer {
     </button>
 
     <p id="message" role="status" aria-live="polite"></p>
-
   </div>
 </section>
 
-
-<!-- ADMIN DASHBOARD -->
 
 <section id="dashboard">
 
@@ -405,7 +345,6 @@ footer {
       <h1>KONIS Admin Portal</h1>
       <p>Kovai Nagarathar Illaignar Sangam</p>
     </div>
-
     <button id="logoutButton">Logout</button>
   </header>
 
@@ -417,35 +356,24 @@ footer {
       <div id="dashboardMessage" role="status" aria-live="polite"></div>
     </div>
 
-
-    <!-- EVENT MANAGEMENT -->
-
     <div class="card">
-
       <h2>Event Management</h2>
 
       <div class="status-banner">
         <strong id="activeEventName">Loading events...</strong>
-        <span id="activeEventDetails">
-          Checking event status...
-        </span>
+        <span id="activeEventDetails">Checking event status...</span>
       </div>
 
       <p class="small-note">
         Each event can be opened or closed independently.
-        You can keep multiple events open simultaneously.
+        Multiple events can remain open simultaneously.
         Closing one event will not affect the other events.
       </p>
 
       <div id="eventGrid" class="event-grid"></div>
-
     </div>
 
-
-    <!-- ADMIN MANAGEMENT -->
-
     <div class="card">
-
       <h2>Administrator Management</h2>
 
       <p class="small-note">
@@ -455,25 +383,14 @@ footer {
       </p>
 
       <form id="inviteForm" class="admin-form">
-
         <div class="field">
           <label for="inviteEmail">New Admin Email</label>
-          <input
-            id="inviteEmail"
-            type="email"
-            placeholder="example@gmail.com"
-            required
-          >
+          <input id="inviteEmail" type="email" placeholder="example@gmail.com" required>
         </div>
-
-        <button id="inviteButton" type="submit">
-          Invite Admin
-        </button>
-
+        <button id="inviteButton" type="submit">Invite Admin</button>
       </form>
 
       <div class="admin-table-wrap">
-
         <table>
           <thead>
             <tr>
@@ -482,24 +399,16 @@ footer {
               <th>Action</th>
             </tr>
           </thead>
-
           <tbody id="adminTable">
-            <tr>
-              <td colspan="3">Loading administrators...</td>
-            </tr>
+            <tr><td colspan="3">Loading administrators...</td></tr>
           </tbody>
         </table>
-
       </div>
-
     </div>
 
   </main>
 
-  <footer>
-    KONIS Admin Portal
-  </footer>
-
+  <footer>KONIS Admin Portal</footer>
 </section>
 
 
@@ -576,29 +485,16 @@ let eventStatuses = [];
 
 const loginPage = document.getElementById("loginPage");
 const dashboard = document.getElementById("dashboard");
-
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
-
 const resendButton = document.getElementById("resendButton");
 const message = document.getElementById("message");
-const dashboardMessage =
-  document.getElementById("dashboardMessage");
-
-const signupSection =
-  document.getElementById("signupSection");
-
-const signupForm =
-  document.getElementById("signupForm");
-
-const signupButton =
-  document.getElementById("signupButton");
-
-const showSignupButton =
-  document.getElementById("showSignupButton");
-
-const showLoginButton =
-  document.getElementById("showLoginButton");
+const dashboardMessage = document.getElementById("dashboardMessage");
+const signupSection = document.getElementById("signupSection");
+const signupForm = document.getElementById("signupForm");
+const signupButton = document.getElementById("signupButton");
+const showSignupButton = document.getElementById("showSignupButton");
+const showLoginButton = document.getElementById("showLoginButton");
 
 
 // --------------------------------------------------
@@ -616,38 +512,30 @@ function showDashboardMessage(text, type = "success") {
 }
 
 function friendlyError(error) {
-
   console.error(error);
 
   const code = error.code || "";
 
-  if (code === "auth/invalid-credential") {
+  if (code === "auth/invalid-credential")
     return "Incorrect email or password.";
-  }
 
-  if (code === "auth/too-many-requests") {
-    return "Firebase temporarily blocked this request because of too many attempts. Please wait before trying again.";
-  }
+  if (code === "auth/too-many-requests")
+    return "Firebase temporarily blocked this request. Please wait before trying again.";
 
-  if (code === "auth/network-request-failed") {
+  if (code === "auth/network-request-failed")
     return "Network error. Check your internet connection.";
-  }
 
-  if (code === "auth/user-disabled") {
+  if (code === "auth/user-disabled")
     return "This account has been disabled.";
-  }
 
-  if (code === "auth/email-already-in-use") {
+  if (code === "auth/email-already-in-use")
     return "An account already exists with this email. Please log in instead.";
-  }
 
-  if (code === "auth/weak-password") {
+  if (code === "auth/weak-password")
     return "Please choose a stronger password.";
-  }
 
-  if (code === "auth/invalid-email") {
+  if (code === "auth/invalid-email")
     return "Please enter a valid email address.";
-  }
 
   return error.message || "Something went wrong.";
 }
@@ -658,12 +546,9 @@ function friendlyError(error) {
 // --------------------------------------------------
 
 function showSignupPage() {
-
   loginForm.hidden = true;
   signupSection.hidden = false;
-
   resendButton.hidden = true;
-
   showSignupButton.hidden = true;
   showLoginButton.hidden = false;
 
@@ -671,50 +556,31 @@ function showSignupPage() {
     "Create your KONIS account using your invited email.",
     "success"
   );
-
 }
 
 function showLoginPage() {
-
   signupSection.hidden = true;
   loginForm.hidden = false;
-
   showSignupButton.hidden = false;
   showLoginButton.hidden = true;
-
   showLoginMessage("");
-
 }
 
-showSignupButton.addEventListener(
-  "click",
-  showSignupPage
-);
-
-showLoginButton.addEventListener(
-  "click",
-  showLoginPage
-);
+showSignupButton.addEventListener("click", showSignupPage);
+showLoginButton.addEventListener("click", showLoginPage);
 
 
 // --------------------------------------------------
-// OPEN SIGNUP PAGE FROM INVITATION LINK
+// INVITATION LINK
 // --------------------------------------------------
 
-const urlParams = new URLSearchParams(
-  window.location.search
-);
+const urlParams = new URLSearchParams(window.location.search);
 
 if (urlParams.get("signup") === "1") {
-
-  const invitedEmail =
+  document.getElementById("signupEmail").value =
     urlParams.get("email") || "";
 
-  document.getElementById("signupEmail").value =
-    invitedEmail;
-
   showSignupPage();
-
 }
 
 
@@ -775,39 +641,23 @@ async function apiRequest(path, method = "GET", body = null) {
 signupForm.addEventListener("submit", async event => {
 
   event.preventDefault();
-
   signupButton.disabled = true;
 
   try {
 
-    const email = document
-      .getElementById("signupEmail")
-      .value
-      .trim()
-      .toLowerCase();
+    const email = document.getElementById("signupEmail")
+      .value.trim().toLowerCase();
 
-    const password = document
-      .getElementById("signupPassword")
-      .value;
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
 
-    const confirmPassword = document
-      .getElementById("confirmPassword")
-      .value;
+    if (password.length < 6)
+      throw new Error("Password must contain at least 6 characters.");
 
-    if (password.length < 6) {
-      throw new Error(
-        "Password must contain at least 6 characters."
-      );
-    }
-
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword)
       throw new Error("Passwords do not match.");
-    }
 
-    showLoginMessage(
-      "Creating your account...",
-      "success"
-    );
+    showLoginMessage("Creating your account...", "success");
 
     const result = await createUserWithEmailAndPassword(
       auth,
@@ -818,11 +668,9 @@ signupForm.addEventListener("submit", async event => {
     try {
 
       await sendEmailVerification(result.user);
-
       await signOut(auth);
 
       signupForm.reset();
-
       document.getElementById("email").value = email;
 
       showLoginPage();
@@ -834,48 +682,30 @@ signupForm.addEventListener("submit", async event => {
 
     } catch (verificationError) {
 
-      console.error(
-        "Verification email error:",
-        verificationError
-      );
+      console.error("Verification email error:", verificationError);
 
-      if (auth.currentUser) {
+      if (auth.currentUser)
         await signOut(auth);
-      }
 
       document.getElementById("email").value = email;
-
       showLoginPage();
 
-      if (
-        verificationError.code ===
-        "auth/too-many-requests"
-      ) {
-
+      if (verificationError.code === "auth/too-many-requests") {
         showLoginMessage(
-          "Your account was created successfully, but Firebase temporarily blocked the verification email. Wait before trying again. If your email is already verified, you can log in.",
+          "Your account was created, but Firebase temporarily blocked the verification email. Please wait before trying again.",
           "error"
         );
-
       } else {
-
         showLoginMessage(
           "Your account was created, but the verification email could not be sent. Please try again later.",
           "error"
         );
-
       }
-
     }
 
   } catch (error) {
 
-    console.error("Signup error:", error);
-
-    showLoginMessage(
-      friendlyError(error),
-      "error"
-    );
+    showLoginMessage(friendlyError(error), "error");
 
   } finally {
 
@@ -897,22 +727,14 @@ loginForm.addEventListener("submit", async event => {
   loginButton.disabled = true;
   resendButton.hidden = true;
 
-  showLoginMessage(
-    "Checking login...",
-    "success"
-  );
+  showLoginMessage("Checking login...", "success");
 
   try {
 
-    const email = document
-      .getElementById("email")
-      .value
-      .trim()
-      .toLowerCase();
+    const email = document.getElementById("email")
+      .value.trim().toLowerCase();
 
-    const password = document
-      .getElementById("password")
-      .value;
+    const password = document.getElementById("password").value;
 
     const result = await signInWithEmailAndPassword(
       auth,
@@ -924,18 +746,16 @@ loginForm.addEventListener("submit", async event => {
 
     const user = auth.currentUser;
 
-    if (!user) {
+    if (!user)
       throw new Error("Firebase session unavailable.");
-    }
 
     if (!user.emailVerified) {
 
       await signOut(auth);
-
       resendButton.hidden = false;
 
       showLoginMessage(
-        "Your email is not verified. Check your inbox for the verification email. Use Resend Verification Email if needed.",
+        "Your email is not verified. Check your inbox for the verification email.",
         "error"
       );
 
@@ -955,22 +775,11 @@ loginForm.addEventListener("submit", async event => {
 
     } catch (error) {
 
-      if (
-        !String(error.message).includes(
-          "Admin access denied"
-        )
-      ) {
+      if (!String(error.message).includes("Admin access denied"))
         throw error;
-      }
 
-      await apiRequest(
-        "/api/admins/claim",
-        "POST",
-        {}
-      );
-
+      await apiRequest("/api/admins/claim", "POST", {});
       meResponse = await apiRequest("/api/me");
-
     }
 
     currentAdmin = meResponse.admin;
@@ -979,16 +788,10 @@ loginForm.addEventListener("submit", async event => {
 
   } catch (error) {
 
-    console.error("Login error:", error);
+    showLoginMessage(friendlyError(error), "error");
 
-    showLoginMessage(
-      friendlyError(error),
-      "error"
-    );
-
-    if (auth.currentUser) {
+    if (auth.currentUser)
       await signOut(auth);
-    }
 
   } finally {
 
@@ -1009,26 +812,15 @@ resendButton.addEventListener("click", async () => {
 
   try {
 
-    const email = document
-      .getElementById("email")
-      .value
-      .trim()
-      .toLowerCase();
+    const email = document.getElementById("email")
+      .value.trim().toLowerCase();
 
-    const password = document
-      .getElementById("password")
-      .value;
+    const password = document.getElementById("password").value;
 
-    if (!email || !password) {
-      throw new Error(
-        "Enter your email and password first."
-      );
-    }
+    if (!email || !password)
+      throw new Error("Enter your email and password first.");
 
-    showLoginMessage(
-      "Checking your account...",
-      "success"
-    );
+    showLoginMessage("Checking your account...", "success");
 
     const result = await signInWithEmailAndPassword(
       auth,
@@ -1040,14 +832,12 @@ resendButton.addEventListener("click", async () => {
 
     const user = auth.currentUser;
 
-    if (!user) {
+    if (!user)
       throw new Error("Firebase session unavailable.");
-    }
 
     if (user.emailVerified) {
 
       await signOut(auth);
-
       resendButton.hidden = true;
 
       showLoginMessage(
@@ -1059,7 +849,6 @@ resendButton.addEventListener("click", async () => {
     }
 
     await sendEmailVerification(user);
-
     await signOut(auth);
 
     showLoginMessage(
@@ -1069,15 +858,7 @@ resendButton.addEventListener("click", async () => {
 
   } catch (error) {
 
-    console.error(
-      "Resend verification error:",
-      error
-    );
-
-    showLoginMessage(
-      friendlyError(error),
-      "error"
-    );
+    showLoginMessage(friendlyError(error), "error");
 
   } finally {
 
@@ -1116,27 +897,24 @@ async function refreshEvents() {
 
     const result = await fetch(
       `${BACKEND_URL}/api/events/active`,
-      { cache: "no-store" }
+      {
+        method: "GET",
+        cache: "no-store"
+      }
     );
-
-    if (!result.ok) {
-      throw new Error(
-        "Could not retrieve event status."
-      );
-    }
 
     const data = await result.json();
 
-    if (!Array.isArray(data.events)) {
-      throw new Error(
-        "Backend returned an invalid event list."
-      );
-    }
+    if (!result.ok)
+      throw new Error(data.error || "Could not retrieve event status.");
+
+    if (!Array.isArray(data.events))
+      throw new Error("Backend returned an invalid event list.");
 
     eventStatuses = data.events;
 
     const openEvents = eventStatuses.filter(
-      event => event.open
+      event => event.open === true
     );
 
     document.getElementById("activeEventName").textContent =
@@ -1153,10 +931,7 @@ async function refreshEvents() {
 
   } catch (error) {
 
-    showDashboardMessage(
-      error.message,
-      "error"
-    );
+    showDashboardMessage(error.message, "error");
 
   }
 
@@ -1178,16 +953,28 @@ function renderEvents() {
       item => item.id === event.id
     );
 
+    const card = document.createElement("div");
+    card.className = "event-card";
+
     if (!eventData) {
+
+      const heading = document.createElement("h3");
+      heading.textContent = event.name;
+
+      const note = document.createElement("p");
+      note.className = "small-note";
+      note.textContent = "Event status unavailable. Refresh the page.";
+
+      card.append(heading, note);
+      grid.appendChild(card);
+
       return;
     }
 
     const isOpen = eventData.open === true;
 
-    const card = document.createElement("div");
-
-    card.className =
-      "event-card" + (isOpen ? " active" : "");
+    if (isOpen)
+      card.classList.add("active");
 
     const heading = document.createElement("h3");
     heading.textContent = event.name;
@@ -1198,12 +985,9 @@ function renderEvents() {
       "event-status " +
       (isOpen ? "open-status" : "closed-status");
 
-    status.textContent = isOpen
-      ? "● OPEN"
-      : "● CLOSED";
+    status.textContent = isOpen ? "● OPEN" : "● CLOSED";
 
     card.append(heading, status);
-
 
     // TOKEN RANGE INFORMATION
 
@@ -1269,13 +1053,11 @@ function renderEvents() {
         fields.append(startLabel, endLabel);
         card.appendChild(fields);
 
-        const prefixNote = document.createElement("p");
-        prefixNote.className = "small-note";
-        prefixNote.textContent =
-          `Token format: ${event.prefix}-0101`;
+        const note = document.createElement("p");
+        note.className = "small-note";
+        note.textContent = `Token format: ${event.prefix}-0101`;
 
-        card.appendChild(prefixNote);
-
+        card.appendChild(note);
       }
 
     } else {
@@ -1285,11 +1067,9 @@ function renderEvents() {
       note.textContent = "No token numbers required.";
 
       card.appendChild(note);
-
     }
 
-
-    // INDIVIDUAL OPEN / CLOSE BUTTON
+    // INDIVIDUAL EVENT BUTTON
 
     const button = document.createElement("button");
 
@@ -1299,7 +1079,7 @@ function renderEvents() {
       button.className = "close-event-button";
 
       button.addEventListener("click", () => {
-        closeEvent(event);
+        closeEvent(event, button);
       });
 
     } else {
@@ -1307,7 +1087,7 @@ function renderEvents() {
       button.textContent = "Open Registration";
 
       button.addEventListener("click", () => {
-        openEvent(event);
+        openEvent(event, button);
       });
 
     }
@@ -1324,25 +1104,30 @@ function renderEvents() {
 // OPEN INDIVIDUAL EVENT
 // --------------------------------------------------
 
-async function openEvent(event) {
+async function openEvent(event, button) {
 
-  const button = document.querySelector(
-    `#eventGrid .event-card button`
+  const selectedEvent = EVENTS.find(
+    item => item.id === event.id
   );
 
-  let body = {
-    event_key: event.id,
+  if (!selectedEvent) {
+    showDashboardMessage("Invalid event selected.", "error");
+    return;
+  }
+
+  const body = {
+    event_key: selectedEvent.id,
     open: true
   };
 
-  if (event.prefix) {
+  if (selectedEvent.prefix) {
 
     const startInput = document.getElementById(
-      `start-${event.id}`
+      `start-${selectedEvent.id}`
     );
 
     const endInput = document.getElementById(
-      `end-${event.id}`
+      `end-${selectedEvent.id}`
     );
 
     const start = Number(startInput?.value);
@@ -1357,7 +1142,7 @@ async function openEvent(event) {
     ) {
 
       showDashboardMessage(
-        `Enter valid start and end token numbers for ${event.name}.`,
+        `Enter valid start and end token numbers for ${selectedEvent.name}.`,
         "error"
       );
 
@@ -1366,19 +1151,22 @@ async function openEvent(event) {
 
     body.start_number = start;
     body.end_number = end;
-
   }
 
   if (!confirm(
-    `Open registration for ${event.name}?\n\nOther events will remain unchanged.`
+    `Open registration for ${selectedEvent.name}?\n\nOther events will remain unchanged.`
   )) {
     return;
   }
 
+  button.disabled = true;
+
   try {
 
+    console.log("Opening event request:", JSON.stringify(body));
+
     showDashboardMessage(
-      `Opening ${event.name}...`,
+      `Opening ${selectedEvent.name}...`,
       "success"
     );
 
@@ -1389,7 +1177,7 @@ async function openEvent(event) {
     );
 
     showDashboardMessage(
-      result.message,
+      result.message || `${selectedEvent.name} opened successfully.`,
       "success"
     );
 
@@ -1397,10 +1185,11 @@ async function openEvent(event) {
 
   } catch (error) {
 
-    showDashboardMessage(
-      error.message,
-      "error"
-    );
+    console.error("Open event error:", error);
+
+    showDashboardMessage(error.message, "error");
+
+    button.disabled = false;
 
   }
 
@@ -1411,32 +1200,47 @@ async function openEvent(event) {
 // CLOSE INDIVIDUAL EVENT
 // --------------------------------------------------
 
-async function closeEvent(event) {
+async function closeEvent(event, button) {
+
+  const selectedEvent = EVENTS.find(
+    item => item.id === event.id
+  );
+
+  if (!selectedEvent) {
+    showDashboardMessage("Invalid event selected.", "error");
+    return;
+  }
 
   if (!confirm(
-    `Close registration for ${event.name}?\n\nOther open events will remain open.`
+    `Close registration for ${selectedEvent.name}?\n\nOther open events will remain open.`
   )) {
     return;
   }
 
+  button.disabled = true;
+
   try {
 
+    const body = {
+      event_key: selectedEvent.id,
+      open: false
+    };
+
+    console.log("Closing event request:", JSON.stringify(body));
+
     showDashboardMessage(
-      `Closing ${event.name}...`,
+      `Closing ${selectedEvent.name}...`,
       "success"
     );
 
     const result = await apiRequest(
       "/api/events/active",
       "POST",
-      {
-        event_key: event.id,
-        open: false
-      }
+      body
     );
 
     showDashboardMessage(
-      result.message,
+      result.message || `${selectedEvent.name} closed successfully.`,
       "success"
     );
 
@@ -1444,10 +1248,11 @@ async function closeEvent(event) {
 
   } catch (error) {
 
-    showDashboardMessage(
-      error.message,
-      "error"
-    );
+    console.error("Close event error:", error);
+
+    showDashboardMessage(error.message, "error");
+
+    button.disabled = false;
 
   }
 
@@ -1508,7 +1313,6 @@ async function refreshAdmins() {
         });
 
         actionCell.appendChild(removeButton);
-
       }
 
       row.append(emailCell, roleCell, actionCell);
@@ -1543,7 +1347,6 @@ document.getElementById("inviteForm").addEventListener(
     event.preventDefault();
 
     const button = document.getElementById("inviteButton");
-
     button.disabled = true;
 
     try {
@@ -1557,19 +1360,13 @@ document.getElementById("inviteForm").addEventListener(
         { email }
       );
 
-      showDashboardMessage(
-        result.message,
-        "success"
-      );
+      showDashboardMessage(result.message, "success");
 
       document.getElementById("inviteEmail").value = "";
 
     } catch (error) {
 
-      showDashboardMessage(
-        error.message,
-        "error"
-      );
+      showDashboardMessage(error.message, "error");
 
     } finally {
 
@@ -1601,19 +1398,13 @@ async function removeAdmin(admin) {
       { firebase_uid: admin.firebase_uid }
     );
 
-    showDashboardMessage(
-      result.message,
-      "success"
-    );
+    showDashboardMessage(result.message, "success");
 
     await refreshAdmins();
 
   } catch (error) {
 
-    showDashboardMessage(
-      error.message,
-      "error"
-    );
+    showDashboardMessage(error.message, "error");
 
   }
 
@@ -1628,9 +1419,8 @@ document.getElementById("logoutButton").addEventListener(
   "click",
   async () => {
 
-    if (!confirm("Are you sure you want to log out?")) {
+    if (!confirm("Are you sure you want to log out?"))
       return;
-    }
 
     await signOut(auth);
 
