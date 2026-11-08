@@ -83,7 +83,10 @@ h1, .subtitle { text-align: center; }
   margin-top: 10px;
 }
 
-#resendButton[hidden] { display: none; }
+#resendButton[hidden],
+[hidden] {
+  display: none !important;
+}
 
 #message {
   text-align: center;
@@ -263,6 +266,7 @@ footer {
   header { padding: 18px; }
   .range-fields { grid-template-columns: 1fr 1fr; }
   th, td { font-size: 13px; }
+  .login-card { padding: 25px; }
 }
 </style>
 </head>
@@ -281,17 +285,101 @@ footer {
       Admin Portal
     </p>
 
+    <!-- LOGIN FORM -->
+
     <form id="loginForm">
 
       <label for="email">Email Address</label>
-      <input id="email" type="email" required autocomplete="username">
+      <input
+        id="email"
+        type="email"
+        required
+        autocomplete="username"
+      >
 
       <label for="password">Password</label>
-      <input id="password" type="password" required autocomplete="current-password">
+      <input
+        id="password"
+        type="password"
+        required
+        autocomplete="current-password"
+      >
 
-      <button id="loginButton" type="submit">Login</button>
+      <button id="loginButton" type="submit">
+        Login
+      </button>
 
     </form>
+
+
+    <!-- CREATE ACCOUNT FORM -->
+
+    <div id="signupSection" hidden>
+
+      <h2>Create Account</h2>
+
+      <p class="subtitle">
+        Create your KONIS administrator account using your invited email.
+      </p>
+
+      <form id="signupForm">
+
+        <label for="signupEmail">Invited Email Address</label>
+        <input
+          id="signupEmail"
+          type="email"
+          required
+          autocomplete="email"
+        >
+
+        <label for="signupPassword">Create Password</label>
+        <input
+          id="signupPassword"
+          type="password"
+          minlength="6"
+          required
+          autocomplete="new-password"
+        >
+
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          minlength="6"
+          required
+          autocomplete="new-password"
+        >
+
+        <button id="signupButton" type="submit">
+          Create Account
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <!-- PAGE SWITCH BUTTONS -->
+
+    <button
+      id="showSignupButton"
+      type="button"
+      class="secondary"
+    >
+      Create Account
+    </button>
+
+    <button
+      id="showLoginButton"
+      type="button"
+      class="secondary"
+      hidden
+    >
+      Back to Login
+    </button>
+
+
+    <!-- RESEND VERIFICATION -->
 
     <button id="resendButton" type="button" hidden>
       Resend Verification Email
@@ -419,6 +507,7 @@ import { initializeApp } from
 import {
   getAuth,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   sendEmailVerification
 } from
@@ -478,11 +567,26 @@ let activeEvent = null;
 
 const loginPage = document.getElementById("loginPage");
 const dashboard = document.getElementById("dashboard");
+
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
+
 const resendButton = document.getElementById("resendButton");
 const message = document.getElementById("message");
 const dashboardMessage = document.getElementById("dashboardMessage");
+
+
+// CREATE ACCOUNT ELEMENTS
+
+const signupSection = document.getElementById("signupSection");
+const signupForm = document.getElementById("signupForm");
+const signupButton = document.getElementById("signupButton");
+
+const showSignupButton =
+  document.getElementById("showSignupButton");
+
+const showLoginButton =
+  document.getElementById("showLoginButton");
 
 
 // --------------------------------------------------
@@ -520,7 +624,86 @@ function friendlyError(error) {
     return "This account has been disabled.";
   }
 
+  if (code === "auth/email-already-in-use") {
+    return "An account already exists with this email. Please log in instead.";
+  }
+
+  if (code === "auth/weak-password") {
+    return "Please choose a stronger password.";
+  }
+
+  if (code === "auth/invalid-email") {
+    return "Please enter a valid email address.";
+  }
+
   return error.message || "Something went wrong.";
+}
+
+
+// --------------------------------------------------
+// LOGIN / SIGNUP PAGE SWITCHING
+// --------------------------------------------------
+
+function showSignupPage() {
+
+  loginForm.hidden = true;
+  signupSection.hidden = false;
+
+  resendButton.hidden = true;
+
+  showSignupButton.hidden = true;
+  showLoginButton.hidden = false;
+
+  showLoginMessage(
+    "Create your KONIS account using your invited email.",
+    "success"
+  );
+
+}
+
+
+function showLoginPage() {
+
+  signupSection.hidden = true;
+  loginForm.hidden = false;
+
+  showSignupButton.hidden = false;
+  showLoginButton.hidden = true;
+
+  showLoginMessage("");
+
+}
+
+
+showSignupButton.addEventListener(
+  "click",
+  showSignupPage
+);
+
+showLoginButton.addEventListener(
+  "click",
+  showLoginPage
+);
+
+
+// --------------------------------------------------
+// OPEN SIGNUP PAGE FROM INVITATION LINK
+// --------------------------------------------------
+
+const urlParams = new URLSearchParams(
+  window.location.search
+);
+
+if (urlParams.get("signup") === "1") {
+
+  const invitedEmail =
+    urlParams.get("email") || "";
+
+  document.getElementById("signupEmail").value =
+    invitedEmail;
+
+  showSignupPage();
+
 }
 
 
@@ -570,6 +753,97 @@ async function apiRequest(path, method = "GET", body = null) {
 
   return data;
 }
+
+
+// --------------------------------------------------
+// CREATE FIREBASE ACCOUNT
+// --------------------------------------------------
+
+signupForm.addEventListener("submit", async event => {
+
+  event.preventDefault();
+
+  signupButton.disabled = true;
+
+  try {
+
+    const email = document
+      .getElementById("signupEmail")
+      .value
+      .trim()
+      .toLowerCase();
+
+    const password = document
+      .getElementById("signupPassword")
+      .value;
+
+    const confirmPassword = document
+      .getElementById("confirmPassword")
+      .value;
+
+
+    if (password.length < 6) {
+      throw new Error(
+        "Password must contain at least 6 characters."
+      );
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error(
+        "Passwords do not match."
+      );
+    }
+
+
+    showLoginMessage(
+      "Creating your account...",
+      "success"
+    );
+
+
+    const result = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+
+    // Send Firebase verification email.
+    await sendEmailVerification(result.user);
+
+
+    // Sign out until email verification is completed.
+    await signOut(auth);
+
+
+    signupForm.reset();
+
+    document.getElementById("email").value = email;
+
+    showLoginPage();
+
+    showLoginMessage(
+      "Account created successfully! A verification email has been sent. Verify your email, then log in.",
+      "success"
+    );
+
+
+  } catch (error) {
+
+    console.error("Signup error:", error);
+
+    showLoginMessage(
+      friendlyError(error),
+      "error"
+    );
+
+  } finally {
+
+    signupButton.disabled = false;
+
+  }
+
+});
 
 
 // --------------------------------------------------
@@ -873,6 +1147,7 @@ function renderEvents() {
         `Token format: ${event.prefix}-0025`;
 
       card.appendChild(prefixNote);
+
     } else {
 
       const note = document.createElement("p");
@@ -1192,6 +1467,9 @@ document.getElementById("logoutButton").addEventListener(
     loginPage.style.display = "flex";
 
     loginForm.reset();
+    signupForm.reset();
+
+    showLoginPage();
 
     showLoginMessage("You have logged out.", "success");
 
