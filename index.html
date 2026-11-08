@@ -337,7 +337,6 @@ footer {
   </div>
 </section>
 
-
 <section id="dashboard">
 
   <header>
@@ -366,8 +365,10 @@ footer {
 
       <p class="small-note">
         Each event can be opened or closed independently.
-        Multiple events can remain open simultaneously.
-        Closing one event will not affect the other events.
+        All four events can remain open simultaneously.
+        Token ranges can overlap and can be reused.
+        Reopening an event starts token generation from the newly
+        configured Start Token.
       </p>
 
       <div id="eventGrid" class="event-grid"></div>
@@ -411,7 +412,6 @@ footer {
   <footer>KONIS Admin Portal</footer>
 </section>
 
-
 <script type="module">
 
 import { initializeApp } from
@@ -425,7 +425,6 @@ import {
   sendEmailVerification
 } from
   "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
 
 // --------------------------------------------------
 // CONFIGURATION
@@ -447,7 +446,6 @@ const BACKEND_URL =
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-
 // --------------------------------------------------
 // EVENT DEFINITIONS
 // --------------------------------------------------
@@ -460,7 +458,7 @@ const EVENTS = [
   },
   {
     id: "children_program",
-    name: "Children Program",
+    name: "Children's Program",
     prefix: null
   },
   {
@@ -477,7 +475,7 @@ const EVENTS = [
 
 let currentAdmin = null;
 let eventStatuses = [];
-
+let dashboardLoading = false;
 
 // --------------------------------------------------
 // ELEMENTS
@@ -495,7 +493,6 @@ const signupForm = document.getElementById("signupForm");
 const signupButton = document.getElementById("signupButton");
 const showSignupButton = document.getElementById("showSignupButton");
 const showLoginButton = document.getElementById("showLoginButton");
-
 
 // --------------------------------------------------
 // MESSAGES
@@ -540,7 +537,6 @@ function friendlyError(error) {
   return error.message || "Something went wrong.";
 }
 
-
 // --------------------------------------------------
 // LOGIN / SIGNUP PAGE SWITCHING
 // --------------------------------------------------
@@ -569,7 +565,6 @@ function showLoginPage() {
 showSignupButton.addEventListener("click", showSignupPage);
 showLoginButton.addEventListener("click", showLoginPage);
 
-
 // --------------------------------------------------
 // INVITATION LINK
 // --------------------------------------------------
@@ -583,13 +578,11 @@ if (urlParams.get("signup") === "1") {
   showSignupPage();
 }
 
-
 // --------------------------------------------------
 // BACKEND API HELPER
 // --------------------------------------------------
 
 async function apiRequest(path, method = "GET", body = null) {
-
   const user = auth.currentUser;
 
   if (!user) {
@@ -633,18 +626,15 @@ async function apiRequest(path, method = "GET", body = null) {
   return data;
 }
 
-
 // --------------------------------------------------
 // CREATE FIREBASE ACCOUNT
 // --------------------------------------------------
 
 signupForm.addEventListener("submit", async event => {
-
   event.preventDefault();
   signupButton.disabled = true;
 
   try {
-
     const email = document.getElementById("signupEmail")
       .value.trim().toLowerCase();
 
@@ -666,7 +656,6 @@ signupForm.addEventListener("submit", async event => {
     );
 
     try {
-
       await sendEmailVerification(result.user);
       await signOut(auth);
 
@@ -681,7 +670,6 @@ signupForm.addEventListener("submit", async event => {
       );
 
     } catch (verificationError) {
-
       console.error("Verification email error:", verificationError);
 
       if (auth.currentUser)
@@ -704,24 +692,18 @@ signupForm.addEventListener("submit", async event => {
     }
 
   } catch (error) {
-
     showLoginMessage(friendlyError(error), "error");
 
   } finally {
-
     signupButton.disabled = false;
-
   }
-
 });
-
 
 // --------------------------------------------------
 // LOGIN
 // --------------------------------------------------
 
 loginForm.addEventListener("submit", async event => {
-
   event.preventDefault();
 
   loginButton.disabled = true;
@@ -730,7 +712,6 @@ loginForm.addEventListener("submit", async event => {
   showLoginMessage("Checking login...", "success");
 
   try {
-
     const email = document.getElementById("email")
       .value.trim().toLowerCase();
 
@@ -750,7 +731,6 @@ loginForm.addEventListener("submit", async event => {
       throw new Error("Firebase session unavailable.");
 
     if (!user.emailVerified) {
-
       await signOut(auth);
       resendButton.hidden = false;
 
@@ -770,11 +750,9 @@ loginForm.addEventListener("submit", async event => {
     let meResponse;
 
     try {
-
       meResponse = await apiRequest("/api/me");
 
     } catch (error) {
-
       if (!String(error.message).includes("Admin access denied"))
         throw error;
 
@@ -783,35 +761,27 @@ loginForm.addEventListener("submit", async event => {
     }
 
     currentAdmin = meResponse.admin;
-
     await showDashboard();
 
   } catch (error) {
-
     showLoginMessage(friendlyError(error), "error");
 
     if (auth.currentUser)
       await signOut(auth);
 
   } finally {
-
     loginButton.disabled = false;
-
   }
-
 });
-
 
 // --------------------------------------------------
 // RESEND VERIFICATION EMAIL
 // --------------------------------------------------
 
 resendButton.addEventListener("click", async () => {
-
   resendButton.disabled = true;
 
   try {
-
     const email = document.getElementById("email")
       .value.trim().toLowerCase();
 
@@ -836,7 +806,6 @@ resendButton.addEventListener("click", async () => {
       throw new Error("Firebase session unavailable.");
 
     if (user.emailVerified) {
-
       await signOut(auth);
       resendButton.hidden = true;
 
@@ -857,23 +826,21 @@ resendButton.addEventListener("click", async () => {
     );
 
   } catch (error) {
-
     showLoginMessage(friendlyError(error), "error");
 
   } finally {
-
     resendButton.disabled = false;
-
   }
-
 });
-
 
 // --------------------------------------------------
 // SHOW DASHBOARD
 // --------------------------------------------------
 
 async function showDashboard() {
+  if (dashboardLoading) return;
+
+  dashboardLoading = true;
 
   loginPage.style.display = "none";
   dashboard.style.display = "block";
@@ -881,20 +848,22 @@ async function showDashboard() {
   document.getElementById("adminEmail").textContent =
     currentAdmin.email || "";
 
-  await refreshEvents();
-  await refreshAdmins();
-
+  try {
+    await Promise.all([
+      refreshEvents(),
+      refreshAdmins()
+    ]);
+  } finally {
+    dashboardLoading = false;
+  }
 }
-
 
 // --------------------------------------------------
 // GET INDEPENDENT EVENT STATUS
 // --------------------------------------------------
 
 async function refreshEvents() {
-
   try {
-
     const result = await fetch(
       `${BACKEND_URL}/api/events/active`,
       {
@@ -930,25 +899,19 @@ async function refreshEvents() {
     renderEvents();
 
   } catch (error) {
-
     showDashboardMessage(error.message, "error");
-
   }
-
 }
-
 
 // --------------------------------------------------
 // RENDER EVENT CARDS
 // --------------------------------------------------
 
 function renderEvents() {
-
   const grid = document.getElementById("eventGrid");
   grid.replaceChildren();
 
   EVENTS.forEach(event => {
-
     const eventData = eventStatuses.find(
       item => item.id === event.id
     );
@@ -957,7 +920,6 @@ function renderEvents() {
     card.className = "event-card";
 
     if (!eventData) {
-
       const heading = document.createElement("h3");
       heading.textContent = event.name;
 
@@ -967,7 +929,6 @@ function renderEvents() {
 
       card.append(heading, note);
       grid.appendChild(card);
-
       return;
     }
 
@@ -980,7 +941,6 @@ function renderEvents() {
     heading.textContent = event.name;
 
     const status = document.createElement("div");
-
     status.className =
       "event-status " +
       (isOpen ? "open-status" : "closed-status");
@@ -989,14 +949,9 @@ function renderEvents() {
 
     card.append(heading, status);
 
-    // TOKEN RANGE INFORMATION
-
     if (event.prefix) {
-
       if (isOpen && eventData.token_range) {
-
         const range = eventData.token_range;
-
         const info = document.createElement("div");
         info.className = "token-info";
 
@@ -1014,7 +969,6 @@ function renderEvents() {
         card.appendChild(info);
 
       } else if (isOpen) {
-
         const info = document.createElement("p");
         info.className = "small-note";
         info.textContent =
@@ -1023,7 +977,6 @@ function renderEvents() {
         card.appendChild(info);
 
       } else {
-
         const fields = document.createElement("div");
         fields.className = "range-fields";
 
@@ -1036,6 +989,7 @@ function renderEvents() {
         startInput.max = "99999999";
         startInput.id = `start-${event.id}`;
         startInput.placeholder = "Example: 101";
+        startInput.required = true;
 
         const endLabel = document.createElement("label");
         endLabel.textContent = "End number";
@@ -1046,6 +1000,7 @@ function renderEvents() {
         endInput.max = "99999999";
         endInput.id = `end-${event.id}`;
         endInput.placeholder = "Example: 200";
+        endInput.required = true;
 
         startLabel.appendChild(startInput);
         endLabel.appendChild(endInput);
@@ -1055,26 +1010,21 @@ function renderEvents() {
 
         const note = document.createElement("p");
         note.className = "small-note";
-        note.textContent = `Token format: ${event.prefix}-0101`;
+        note.textContent =
+          `Token format: ${event.prefix}-0101. Overlapping ranges are allowed.`;
 
         card.appendChild(note);
       }
-
     } else {
-
       const note = document.createElement("p");
       note.className = "small-note";
       note.textContent = "No token numbers required.";
-
       card.appendChild(note);
     }
-
-    // INDIVIDUAL EVENT BUTTON
 
     const button = document.createElement("button");
 
     if (isOpen) {
-
       button.textContent = "Close Registration";
       button.className = "close-event-button";
 
@@ -1083,29 +1033,23 @@ function renderEvents() {
       });
 
     } else {
-
       button.textContent = "Open Registration";
 
       button.addEventListener("click", () => {
         openEvent(event, button);
       });
-
     }
 
     card.appendChild(button);
     grid.appendChild(card);
-
   });
-
 }
-
 
 // --------------------------------------------------
 // OPEN INDIVIDUAL EVENT
 // --------------------------------------------------
 
 async function openEvent(event, button) {
-
   const selectedEvent = EVENTS.find(
     item => item.id === event.id
   );
@@ -1121,7 +1065,6 @@ async function openEvent(event, button) {
   };
 
   if (selectedEvent.prefix) {
-
     const startInput = document.getElementById(
       `start-${selectedEvent.id}`
     );
@@ -1140,12 +1083,10 @@ async function openEvent(event, button) {
       end < start ||
       end > 99999999
     ) {
-
       showDashboardMessage(
         `Enter valid start and end token numbers for ${selectedEvent.name}.`,
         "error"
       );
-
       return;
     }
 
@@ -1154,7 +1095,10 @@ async function openEvent(event, button) {
   }
 
   if (!confirm(
-    `Open registration for ${selectedEvent.name}?\n\nOther events will remain unchanged.`
+    `Open registration for ${selectedEvent.name}?\n\n` +
+    "Other events will remain unchanged.\n" +
+    "Previous registrations will be archived.\n" +
+    "The token counter will start from the configured Start Token."
   )) {
     return;
   }
@@ -1162,9 +1106,6 @@ async function openEvent(event, button) {
   button.disabled = true;
 
   try {
-
-    console.log("Opening event request:", JSON.stringify(body));
-
     showDashboardMessage(
       `Opening ${selectedEvent.name}...`,
       "success"
@@ -1184,24 +1125,17 @@ async function openEvent(event, button) {
     await refreshEvents();
 
   } catch (error) {
-
     console.error("Open event error:", error);
-
     showDashboardMessage(error.message, "error");
-
     button.disabled = false;
-
   }
-
 }
-
 
 // --------------------------------------------------
 // CLOSE INDIVIDUAL EVENT
 // --------------------------------------------------
 
 async function closeEvent(event, button) {
-
   const selectedEvent = EVENTS.find(
     item => item.id === event.id
   );
@@ -1212,7 +1146,8 @@ async function closeEvent(event, button) {
   }
 
   if (!confirm(
-    `Close registration for ${selectedEvent.name}?\n\nOther open events will remain open.`
+    `Close registration for ${selectedEvent.name}?\n\n` +
+    "Other open events will remain open."
   )) {
     return;
   }
@@ -1220,23 +1155,13 @@ async function closeEvent(event, button) {
   button.disabled = true;
 
   try {
-
-    const body = {
-      event_key: selectedEvent.id,
-      open: false
-    };
-
-    console.log("Closing event request:", JSON.stringify(body));
-
-    showDashboardMessage(
-      `Closing ${selectedEvent.name}...`,
-      "success"
-    );
-
     const result = await apiRequest(
       "/api/events/active",
       "POST",
-      body
+      {
+        event_key: selectedEvent.id,
+        open: false
+      }
     );
 
     showDashboardMessage(
@@ -1247,33 +1172,24 @@ async function closeEvent(event, button) {
     await refreshEvents();
 
   } catch (error) {
-
     console.error("Close event error:", error);
-
     showDashboardMessage(error.message, "error");
-
     button.disabled = false;
-
   }
-
 }
-
 
 // --------------------------------------------------
 // LIST ADMINS
 // --------------------------------------------------
 
 async function refreshAdmins() {
-
   const table = document.getElementById("adminTable");
   table.replaceChildren();
 
   try {
-
     const result = await apiRequest("/api/admins");
 
     if (!result.admins || result.admins.length === 0) {
-
       const row = document.createElement("tr");
       const cell = document.createElement("td");
 
@@ -1282,12 +1198,10 @@ async function refreshAdmins() {
 
       row.appendChild(cell);
       table.appendChild(row);
-
       return;
     }
 
     result.admins.forEach(admin => {
-
       const row = document.createElement("tr");
 
       const emailCell = document.createElement("td");
@@ -1299,11 +1213,8 @@ async function refreshAdmins() {
       const actionCell = document.createElement("td");
 
       if (admin.firebase_uid === currentAdmin.firebase_uid) {
-
         actionCell.textContent = "You";
-
       } else {
-
         const removeButton = document.createElement("button");
         removeButton.textContent = "Remove";
         removeButton.className = "danger";
@@ -1317,11 +1228,9 @@ async function refreshAdmins() {
 
       row.append(emailCell, roleCell, actionCell);
       table.appendChild(row);
-
     });
 
   } catch (error) {
-
     const row = document.createElement("tr");
     const cell = document.createElement("td");
 
@@ -1330,11 +1239,8 @@ async function refreshAdmins() {
 
     row.appendChild(cell);
     table.appendChild(row);
-
   }
-
 }
-
 
 // --------------------------------------------------
 // INVITE ADMIN
@@ -1343,14 +1249,12 @@ async function refreshAdmins() {
 document.getElementById("inviteForm").addEventListener(
   "submit",
   async event => {
-
     event.preventDefault();
 
     const button = document.getElementById("inviteButton");
     button.disabled = true;
 
     try {
-
       const email = document.getElementById("inviteEmail")
         .value.trim().toLowerCase();
 
@@ -1361,29 +1265,22 @@ document.getElementById("inviteForm").addEventListener(
       );
 
       showDashboardMessage(result.message, "success");
-
       document.getElementById("inviteEmail").value = "";
 
     } catch (error) {
-
       showDashboardMessage(error.message, "error");
 
     } finally {
-
       button.disabled = false;
-
     }
-
   }
 );
-
 
 // --------------------------------------------------
 // REMOVE ADMIN
 // --------------------------------------------------
 
 async function removeAdmin(admin) {
-
   if (!confirm(
     `Are you sure you want to remove ${admin.email} as an administrator?`
   )) {
@@ -1391,7 +1288,6 @@ async function removeAdmin(admin) {
   }
 
   try {
-
     const result = await apiRequest(
       "/api/admins/remove",
       "POST",
@@ -1399,17 +1295,12 @@ async function removeAdmin(admin) {
     );
 
     showDashboardMessage(result.message, "success");
-
     await refreshAdmins();
 
   } catch (error) {
-
     showDashboardMessage(error.message, "error");
-
   }
-
 }
-
 
 // --------------------------------------------------
 // LOGOUT
@@ -1418,7 +1309,6 @@ async function removeAdmin(admin) {
 document.getElementById("logoutButton").addEventListener(
   "click",
   async () => {
-
     if (!confirm("Are you sure you want to log out?"))
       return;
 
@@ -1439,7 +1329,6 @@ document.getElementById("logoutButton").addEventListener(
       "You have logged out.",
       "success"
     );
-
   }
 );
 
