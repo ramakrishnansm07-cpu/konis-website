@@ -16,7 +16,7 @@ body {
   color: #243b35;
 }
 
-button, input, select { font: inherit; }
+button, input { font: inherit; }
 
 button {
   border: 0;
@@ -160,7 +160,7 @@ header button {
 
 .event-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 15px;
 }
 
@@ -168,6 +168,7 @@ header button {
   border: 1px solid #e1e1e1;
   border-radius: 10px;
   padding: 17px;
+  min-width: 0;
 }
 
 .event-card.active {
@@ -193,6 +194,10 @@ header button {
   margin-top: 10px;
 }
 
+.close-event-button {
+  background: #b83232;
+}
+
 .range-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -205,6 +210,15 @@ header button {
   color: #777;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.token-info {
+  background: #f5f6f3;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .danger {
@@ -285,8 +299,6 @@ footer {
       Admin Portal
     </p>
 
-    <!-- LOGIN FORM -->
-
     <form id="loginForm">
 
       <label for="email">Email Address</label>
@@ -311,7 +323,7 @@ footer {
 
     </form>
 
-    <!-- CREATE ACCOUNT FORM -->
+    <!-- CREATE ACCOUNT -->
 
     <div id="signupSection" hidden>
 
@@ -357,8 +369,6 @@ footer {
 
     </div>
 
-    <!-- PAGE SWITCH BUTTONS -->
-
     <button
       id="showSignupButton"
       type="button"
@@ -376,8 +386,6 @@ footer {
       Back to Login
     </button>
 
-    <!-- RESEND VERIFICATION -->
-
     <button id="resendButton" type="button" hidden>
       Resend Verification Email
     </button>
@@ -386,6 +394,7 @@ footer {
 
   </div>
 </section>
+
 
 <!-- ADMIN DASHBOARD -->
 
@@ -405,9 +414,9 @@ footer {
     <div class="card">
       <h2>Welcome, Administrator</h2>
       <p id="adminEmail" class="small-note"></p>
-
       <div id="dashboardMessage" role="status" aria-live="polite"></div>
     </div>
+
 
     <!-- EVENT MANAGEMENT -->
 
@@ -416,23 +425,22 @@ footer {
       <h2>Event Management</h2>
 
       <div class="status-banner">
-        <strong id="activeEventName">Loading...</strong>
-        <span id="activeEventDetails">Checking event status...</span>
+        <strong id="activeEventName">Loading events...</strong>
+        <span id="activeEventDetails">
+          Checking event status...
+        </span>
       </div>
 
       <p class="small-note">
-        Only one event can accept registrations at a time.
-        Opening another event automatically closes the currently
-        active event and its token range.
+        Each event can be opened or closed independently.
+        You can keep multiple events open simultaneously.
+        Closing one event will not affect the other events.
       </p>
 
       <div id="eventGrid" class="event-grid"></div>
 
-      <button id="closeAllButton" class="danger">
-        Close Current Event
-      </button>
-
     </div>
+
 
     <!-- ADMIN MANAGEMENT -->
 
@@ -476,7 +484,9 @@ footer {
           </thead>
 
           <tbody id="adminTable">
-            <tr><td colspan="3">Loading administrators...</td></tr>
+            <tr>
+              <td colspan="3">Loading administrators...</td>
+            </tr>
           </tbody>
         </table>
 
@@ -492,6 +502,7 @@ footer {
 
 </section>
 
+
 <script type="module">
 
 import { initializeApp } from
@@ -505,6 +516,7 @@ import {
   sendEmailVerification
 } from
   "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
 
 // --------------------------------------------------
 // CONFIGURATION
@@ -525,6 +537,11 @@ const BACKEND_URL =
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+
+// --------------------------------------------------
+// EVENT DEFINITIONS
+// --------------------------------------------------
 
 const EVENTS = [
   {
@@ -550,7 +567,8 @@ const EVENTS = [
 ];
 
 let currentAdmin = null;
-let activeEvent = null;
+let eventStatuses = [];
+
 
 // --------------------------------------------------
 // ELEMENTS
@@ -564,17 +582,24 @@ const loginButton = document.getElementById("loginButton");
 
 const resendButton = document.getElementById("resendButton");
 const message = document.getElementById("message");
-const dashboardMessage = document.getElementById("dashboardMessage");
+const dashboardMessage =
+  document.getElementById("dashboardMessage");
 
-const signupSection = document.getElementById("signupSection");
-const signupForm = document.getElementById("signupForm");
-const signupButton = document.getElementById("signupButton");
+const signupSection =
+  document.getElementById("signupSection");
+
+const signupForm =
+  document.getElementById("signupForm");
+
+const signupButton =
+  document.getElementById("signupButton");
 
 const showSignupButton =
   document.getElementById("showSignupButton");
 
 const showLoginButton =
   document.getElementById("showLoginButton");
+
 
 // --------------------------------------------------
 // MESSAGES
@@ -627,6 +652,7 @@ function friendlyError(error) {
   return error.message || "Something went wrong.";
 }
 
+
 // --------------------------------------------------
 // LOGIN / SIGNUP PAGE SWITCHING
 // --------------------------------------------------
@@ -670,6 +696,7 @@ showLoginButton.addEventListener(
   showLoginPage
 );
 
+
 // --------------------------------------------------
 // OPEN SIGNUP PAGE FROM INVITATION LINK
 // --------------------------------------------------
@@ -689,6 +716,7 @@ if (urlParams.get("signup") === "1") {
   showSignupPage();
 
 }
+
 
 // --------------------------------------------------
 // BACKEND API HELPER
@@ -739,6 +767,7 @@ async function apiRequest(path, method = "GET", body = null) {
   return data;
 }
 
+
 // --------------------------------------------------
 // CREATE FIREBASE ACCOUNT
 // --------------------------------------------------
@@ -772,9 +801,7 @@ signupForm.addEventListener("submit", async event => {
     }
 
     if (password !== confirmPassword) {
-      throw new Error(
-        "Passwords do not match."
-      );
+      throw new Error("Passwords do not match.");
     }
 
     showLoginMessage(
@@ -787,9 +814,6 @@ signupForm.addEventListener("submit", async event => {
       email,
       password
     );
-
-    // Account has been created.
-    // Attempt to send the verification email.
 
     try {
 
@@ -861,6 +885,7 @@ signupForm.addEventListener("submit", async event => {
 
 });
 
+
 // --------------------------------------------------
 // LOGIN
 // --------------------------------------------------
@@ -900,12 +925,9 @@ loginForm.addEventListener("submit", async event => {
     const user = auth.currentUser;
 
     if (!user) {
-      throw new Error(
-        "Firebase session unavailable."
-      );
+      throw new Error("Firebase session unavailable.");
     }
 
-    // Check email verification.
     if (!user.emailVerified) {
 
       await signOut(auth);
@@ -925,7 +947,6 @@ loginForm.addEventListener("submit", async event => {
       "success"
     );
 
-    // First check whether the user is already an admin.
     let meResponse;
 
     try {
@@ -942,14 +963,12 @@ loginForm.addEventListener("submit", async event => {
         throw error;
       }
 
-      // Claim the pending invitation.
       await apiRequest(
         "/api/admins/claim",
         "POST",
         {}
       );
 
-      // Verify that administrator access was granted.
       meResponse = await apiRequest("/api/me");
 
     }
@@ -978,6 +997,7 @@ loginForm.addEventListener("submit", async event => {
   }
 
 });
+
 
 // --------------------------------------------------
 // RESEND VERIFICATION EMAIL
@@ -1021,9 +1041,7 @@ resendButton.addEventListener("click", async () => {
     const user = auth.currentUser;
 
     if (!user) {
-      throw new Error(
-        "Firebase session unavailable."
-      );
+      throw new Error("Firebase session unavailable.");
     }
 
     if (user.emailVerified) {
@@ -1069,6 +1087,7 @@ resendButton.addEventListener("click", async () => {
 
 });
 
+
 // --------------------------------------------------
 // SHOW DASHBOARD
 // --------------------------------------------------
@@ -1086,8 +1105,9 @@ async function showDashboard() {
 
 }
 
+
 // --------------------------------------------------
-// EVENT STATUS
+// GET INDEPENDENT EVENT STATUS
 // --------------------------------------------------
 
 async function refreshEvents() {
@@ -1107,38 +1127,41 @@ async function refreshEvents() {
 
     const data = await result.json();
 
-    activeEvent = data.active_event;
+    if (!Array.isArray(data.events)) {
+      throw new Error(
+        "Backend returned an invalid event list."
+      );
+    }
+
+    eventStatuses = data.events;
+
+    const openEvents = eventStatuses.filter(
+      event => event.open
+    );
 
     document.getElementById("activeEventName").textContent =
-      data.active_event_name || "No Event Currently Open";
+      openEvents.length === 0
+        ? "No Events Currently Open"
+        : `${openEvents.length} Event(s) Currently Open`;
 
-    if (data.token_range) {
-
-      const range = data.token_range;
-
-      const remaining = range.remaining;
-
-      document.getElementById("activeEventDetails").textContent =
-        `Tokens: ${range.prefix}-${String(range.start_number).padStart(4, "0")} to ${range.prefix}-${String(range.end_number).padStart(4, "0")} | Next: ${range.next_number} | Remaining: ${remaining}`;
-
-    } else {
-
-      document.getElementById("activeEventDetails").textContent =
-        activeEvent
-          ? "Registration is open. No token range is required."
-          : "All event registrations are currently closed.";
-
-    }
+    document.getElementById("activeEventDetails").textContent =
+      openEvents.length === 0
+        ? "All event registrations are currently closed."
+        : openEvents.map(event => event.name).join(", ");
 
     renderEvents();
 
   } catch (error) {
 
-    showDashboardMessage(error.message, "error");
+    showDashboardMessage(
+      error.message,
+      "error"
+    );
 
   }
 
 }
+
 
 // --------------------------------------------------
 // RENDER EVENT CARDS
@@ -1151,16 +1174,28 @@ function renderEvents() {
 
   EVENTS.forEach(event => {
 
-    const isOpen = activeEvent === event.id;
+    const eventData = eventStatuses.find(
+      item => item.id === event.id
+    );
+
+    if (!eventData) {
+      return;
+    }
+
+    const isOpen = eventData.open === true;
 
     const card = document.createElement("div");
-    card.className = "event-card" + (isOpen ? " active" : "");
+
+    card.className =
+      "event-card" + (isOpen ? " active" : "");
 
     const heading = document.createElement("h3");
     heading.textContent = event.name;
 
     const status = document.createElement("div");
-    status.className = "event-status " +
+
+    status.className =
+      "event-status " +
       (isOpen ? "open-status" : "closed-status");
 
     status.textContent = isOpen
@@ -1169,125 +1204,181 @@ function renderEvents() {
 
     card.append(heading, status);
 
+
+    // TOKEN RANGE INFORMATION
+
     if (event.prefix) {
 
-      const fields = document.createElement("div");
-      fields.className = "range-fields";
+      if (isOpen && eventData.token_range) {
 
-      const startLabel = document.createElement("label");
-      startLabel.textContent = "Start number";
+        const range = eventData.token_range;
 
-      const startInput = document.createElement("input");
-      startInput.type = "number";
-      startInput.min = "1";
-      startInput.max = "99999999";
-      startInput.id = `start-${event.id}`;
-      startInput.placeholder = "Example: 25";
+        const info = document.createElement("div");
+        info.className = "token-info";
 
-      const endLabel = document.createElement("label");
-      endLabel.textContent = "End number";
+        const startToken =
+          `${event.prefix}-${String(range.start_number).padStart(4, "0")}`;
 
-      const endInput = document.createElement("input");
-      endInput.type = "number";
-      endInput.min = "1";
-      endInput.max = "99999999";
-      endInput.id = `end-${event.id}`;
-      endInput.placeholder = "Example: 100";
+        const endToken =
+          `${event.prefix}-${String(range.end_number).padStart(4, "0")}`;
 
-      startLabel.appendChild(startInput);
-      endLabel.appendChild(endInput);
+        info.textContent =
+          `Token Range: ${startToken} to ${endToken}\n` +
+          `Next Number: ${range.next_number}\n` +
+          `Remaining Tokens: ${range.remaining}`;
 
-      fields.append(startLabel, endLabel);
-      card.appendChild(fields);
+        card.appendChild(info);
 
-      const prefixNote = document.createElement("p");
-      prefixNote.className = "small-note";
-      prefixNote.textContent =
-        `Token format: ${event.prefix}-0025`;
+      } else if (isOpen) {
 
-      card.appendChild(prefixNote);
+        const info = document.createElement("p");
+        info.className = "small-note";
+        info.textContent =
+          "Registration is open, but no active token range was found.";
+
+        card.appendChild(info);
+
+      } else {
+
+        const fields = document.createElement("div");
+        fields.className = "range-fields";
+
+        const startLabel = document.createElement("label");
+        startLabel.textContent = "Start number";
+
+        const startInput = document.createElement("input");
+        startInput.type = "number";
+        startInput.min = "1";
+        startInput.max = "99999999";
+        startInput.id = `start-${event.id}`;
+        startInput.placeholder = "Example: 101";
+
+        const endLabel = document.createElement("label");
+        endLabel.textContent = "End number";
+
+        const endInput = document.createElement("input");
+        endInput.type = "number";
+        endInput.min = "1";
+        endInput.max = "99999999";
+        endInput.id = `end-${event.id}`;
+        endInput.placeholder = "Example: 200";
+
+        startLabel.appendChild(startInput);
+        endLabel.appendChild(endInput);
+
+        fields.append(startLabel, endLabel);
+        card.appendChild(fields);
+
+        const prefixNote = document.createElement("p");
+        prefixNote.className = "small-note";
+        prefixNote.textContent =
+          `Token format: ${event.prefix}-0101`;
+
+        card.appendChild(prefixNote);
+
+      }
 
     } else {
 
       const note = document.createElement("p");
       note.className = "small-note";
       note.textContent = "No token numbers required.";
+
       card.appendChild(note);
 
     }
 
+
+    // INDIVIDUAL OPEN / CLOSE BUTTON
+
     const button = document.createElement("button");
 
-    button.textContent = isOpen
-      ? "Currently Open"
-      : "Open Registration";
+    if (isOpen) {
 
-    button.disabled = isOpen;
+      button.textContent = "Close Registration";
+      button.className = "close-event-button";
 
-    button.addEventListener("click", () => openEvent(event));
+      button.addEventListener("click", () => {
+        closeEvent(event);
+      });
+
+    } else {
+
+      button.textContent = "Open Registration";
+
+      button.addEventListener("click", () => {
+        openEvent(event);
+      });
+
+    }
 
     card.appendChild(button);
-
     grid.appendChild(card);
 
   });
 
 }
 
+
 // --------------------------------------------------
-// OPEN EVENT
+// OPEN INDIVIDUAL EVENT
 // --------------------------------------------------
 
 async function openEvent(event) {
 
-  try {
+  const button = document.querySelector(
+    `#eventGrid .event-card button`
+  );
 
-    let body = {
-      active_event: event.id
-    };
+  let body = {
+    event_key: event.id,
+    open: true
+  };
 
-    if (event.prefix) {
+  if (event.prefix) {
 
-      const start = Number(
-        document.getElementById(`start-${event.id}`).value
+    const startInput = document.getElementById(
+      `start-${event.id}`
+    );
+
+    const endInput = document.getElementById(
+      `end-${event.id}`
+    );
+
+    const start = Number(startInput?.value);
+    const end = Number(endInput?.value);
+
+    if (
+      !Number.isSafeInteger(start) ||
+      !Number.isSafeInteger(end) ||
+      start < 1 ||
+      end < start ||
+      end > 99999999
+    ) {
+
+      showDashboardMessage(
+        `Enter valid start and end token numbers for ${event.name}.`,
+        "error"
       );
 
-      const end = Number(
-        document.getElementById(`end-${event.id}`).value
-      );
-
-      if (
-        !Number.isSafeInteger(start) ||
-        !Number.isSafeInteger(end) ||
-        start < 1 ||
-        end < start ||
-        end > 99999999
-      ) {
-
-        showDashboardMessage(
-          "Enter valid start and end token numbers.",
-          "error"
-        );
-
-        return;
-      }
-
-      body.start_number = start;
-      body.end_number = end;
-
-    }
-
-    if (!confirm(
-      `Open registration for ${event.name}?` +
-      (activeEvent
-        ? "\nThe currently active event will be closed."
-        : "")
-    )) {
       return;
     }
 
+    body.start_number = start;
+    body.end_number = end;
+
+  }
+
+  if (!confirm(
+    `Open registration for ${event.name}?\n\nOther events will remain unchanged.`
+  )) {
+    return;
+  }
+
+  try {
+
     showDashboardMessage(
-      "Opening event...",
+      `Opening ${event.name}...`,
       "success"
     );
 
@@ -1315,54 +1406,53 @@ async function openEvent(event) {
 
 }
 
+
 // --------------------------------------------------
-// CLOSE CURRENT EVENT
+// CLOSE INDIVIDUAL EVENT
 // --------------------------------------------------
 
-document.getElementById("closeAllButton").addEventListener(
-  "click",
-  async () => {
+async function closeEvent(event) {
 
-    if (!activeEvent) {
+  if (!confirm(
+    `Close registration for ${event.name}?\n\nOther open events will remain open.`
+  )) {
+    return;
+  }
 
-      showDashboardMessage(
-        "No event is currently open.",
-        "error"
-      );
+  try {
 
-      return;
-    }
+    showDashboardMessage(
+      `Closing ${event.name}...`,
+      "success"
+    );
 
-    if (!confirm("Close the currently active event?")) {
-      return;
-    }
+    const result = await apiRequest(
+      "/api/events/active",
+      "POST",
+      {
+        event_key: event.id,
+        open: false
+      }
+    );
 
-    try {
+    showDashboardMessage(
+      result.message,
+      "success"
+    );
 
-      const result = await apiRequest(
-        "/api/events/active",
-        "POST",
-        { active_event: null }
-      );
+    await refreshEvents();
 
-      showDashboardMessage(
-        result.message,
-        "success"
-      );
+  } catch (error) {
 
-      await refreshEvents();
-
-    } catch (error) {
-
-      showDashboardMessage(
-        error.message,
-        "error"
-      );
-
-    }
+    showDashboardMessage(
+      error.message,
+      "error"
+    );
 
   }
-);
+
+}
+
 
 // --------------------------------------------------
 // LIST ADMINS
@@ -1441,6 +1531,7 @@ async function refreshAdmins() {
 
 }
 
+
 // --------------------------------------------------
 // INVITE ADMIN
 // --------------------------------------------------
@@ -1489,6 +1580,7 @@ document.getElementById("inviteForm").addEventListener(
   }
 );
 
+
 // --------------------------------------------------
 // REMOVE ADMIN
 // --------------------------------------------------
@@ -1527,6 +1619,7 @@ async function removeAdmin(admin) {
 
 }
 
+
 // --------------------------------------------------
 // LOGOUT
 // --------------------------------------------------
@@ -1542,7 +1635,7 @@ document.getElementById("logoutButton").addEventListener(
     await signOut(auth);
 
     currentAdmin = null;
-    activeEvent = null;
+    eventStatuses = [];
 
     dashboard.style.display = "none";
     loginPage.style.display = "flex";
