@@ -259,6 +259,7 @@ th { background: #f5f6f3; }
 #dashboardMessage {
   margin: 12px 0;
   line-height: 1.5;
+  white-space: pre-line;
 }
 
 footer {
@@ -365,7 +366,7 @@ footer {
 
       <p class="small-note">
         Each event can be opened or closed independently.
-        All four events can remain open simultaneously.
+        Multiple events can remain open simultaneously.
         Token ranges can overlap and can be reused.
         Reopening an event starts token generation from the newly
         configured Start Token.
@@ -604,22 +605,31 @@ async function apiRequest(path, method = "GET", body = null) {
     options.body = JSON.stringify(body);
   }
 
-  const result = await fetch(
-    `${BACKEND_URL}${path}`,
-    options
-  );
+  let response;
+
+  try {
+    response = await fetch(`${BACKEND_URL}${path}`, options);
+  } catch (error) {
+    console.error("Backend network error:", error);
+    throw new Error("Could not connect to the KONIS backend. Check the backend deployment and network.");
+  }
+
+  const responseText = await response.text();
 
   let data;
 
   try {
-    data = await result.json();
+    data = responseText ? JSON.parse(responseText) : {};
   } catch {
+    console.error("Invalid backend response:", responseText);
     throw new Error("Backend returned an invalid response.");
   }
 
-  if (!result.ok) {
+  if (!response.ok || data.success === false) {
     throw new Error(
-      data.error || `Request failed (${result.status})`
+      data.error ||
+      data.message ||
+      `Request failed (${response.status})`
     );
   }
 
@@ -761,6 +771,10 @@ loginForm.addEventListener("submit", async event => {
     }
 
     currentAdmin = meResponse.admin;
+
+    if (!currentAdmin)
+      throw new Error("Backend did not return administrator details.");
+
     await showDashboard();
 
   } catch (error) {
@@ -859,12 +873,37 @@ async function showDashboard() {
 }
 
 // --------------------------------------------------
+// EVENT STATUS HELPERS
+// --------------------------------------------------
+
+function getEventKey(item) {
+  return item.id ||
+    item.event_key ||
+    item.key ||
+    item.event ||
+    "";
+}
+
+function isEventOpen(item) {
+  return item.open === true ||
+    item.is_open === true ||
+    item.open === 1 ||
+    item.is_open === 1;
+}
+
+function getTokenRange(item) {
+  return item.token_range ||
+    item.range ||
+    null;
+}
+
+// --------------------------------------------------
 // GET INDEPENDENT EVENT STATUS
 // --------------------------------------------------
 
 async function refreshEvents() {
   try {
-    const result = await fetch(
+    const response = await fetch(
       `${BACKEND_URL}/api/events/active`,
       {
         method: "GET",
@@ -872,19 +911,25 @@ async function refreshEvents() {
       }
     );
 
-    const data = await result.json();
+    const responseText = await response.text();
 
-    if (!result.ok)
+    let data;
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      throw new Error("Backend returned an invalid event response.");
+    }
+
+    if (!response.ok)
       throw new Error(data.error || "Could not retrieve event status.");
 
     if (!Array.isArray(data.events))
-      throw new Error("Backend returned an invalid event list.");
+      throw new Error("Backend did not return an events array.");
 
     eventStatuses = data.events;
 
-    const openEvents = eventStatuses.filter(
-      event => event.open === true
-    );
+    const openEvents = eventStatuses.filter(isEventOpen);
 
     document.getElementById("activeEventName").textContent =
       openEvents.length === 0
@@ -894,11 +939,12 @@ async function refreshEvents() {
     document.getElementById("activeEventDetails").textContent =
       openEvents.length === 0
         ? "All event registrations are currently closed."
-        : openEvents.map(event => event.name).join(", ");
+        : openEvents.map(event => event.name || getEventKey(event)).join(", ");
 
     renderEvents();
 
   } catch (error) {
+    console.error("Refresh events error:", error);
     showDashboardMessage(error.message, "error");
   }
 }
@@ -913,7 +959,7 @@ function renderEvents() {
 
   EVENTS.forEach(event => {
     const eventData = eventStatuses.find(
-      item => item.id === event.id
+      item => getEventKey(item) === event.id
     );
 
     const card = document.createElement("div");
@@ -932,7 +978,8 @@ function renderEvents() {
       return;
     }
 
-    const isOpen = eventData.open === true;
+    const isOpen = isEventOpen(eventData);
+    const tokenRange = getTokenRange(eventData);
 
     if (isOpen)
       card.classList.add("active");
@@ -950,21 +997,25 @@ function renderEvents() {
     card.append(heading, status);
 
     if (event.prefix) {
-      if (isOpen && eventData.token_range) {
-        const range = eventData.token_range;
+      if (isOpen && tokenRange) {
         const info = document.createElement("div");
         info.className = "token-info";
 
+        const start = Number(tokenRange.start_number);
+        const end = Number(tokenRange.end_number);
+        const next = Number(tokenRange.next_number);
+        const remaining = tokenRange.remaining;
+
         const startToken =
-          `${event.prefix}-${String(range.start_number).padStart(4, "0")}`;
+          `${event.prefix}-${String(start).padStart(4, "0")}`;
 
         const endToken =
-          `${event.prefix}-${String(range.end_number).padStart(4, "0")}`;
+          `${event.prefix}-${String(end).padStart(4, "0")}`;
 
         info.textContent =
           `Token Range: ${startToken} to ${endToken}\n` +
-          `Next Number: ${range.next_number}\n` +
-          `Remaining Tokens: ${range.remaining}`;
+          `Next Number: ${Number.isFinite(next) ? next : "Unavailable"}\n` +
+          `Remaining Tokens: ${remaining ?? "Unavailable"}`;
 
         card.appendChild(info);
 
@@ -1097,7 +1148,7 @@ async function openEvent(event, button) {
   if (!confirm(
     `Open registration for ${selectedEvent.name}?\n\n` +
     "Other events will remain unchanged.\n" +
-    "Previous registrations will be archived.\n" +
+    "Overlapping token ranges are allowed.\n" +
     "The token counter will start from the configured Start Token."
   )) {
     return;
@@ -1189,7 +1240,7 @@ async function refreshAdmins() {
   try {
     const result = await apiRequest("/api/admins");
 
-    if (!result.admins || result.admins.length === 0) {
+    if (!Array.isArray(result.admins) || result.admins.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
 
@@ -1205,10 +1256,10 @@ async function refreshAdmins() {
       const row = document.createElement("tr");
 
       const emailCell = document.createElement("td");
-      emailCell.textContent = admin.email;
+      emailCell.textContent = admin.email || "";
 
       const roleCell = document.createElement("td");
-      roleCell.textContent = admin.role;
+      roleCell.textContent = admin.role || "";
 
       const actionCell = document.createElement("td");
 
@@ -1231,6 +1282,8 @@ async function refreshAdmins() {
     });
 
   } catch (error) {
+    console.error("Refresh admins error:", error);
+
     const row = document.createElement("tr");
     const cell = document.createElement("td");
 
@@ -1258,17 +1311,36 @@ document.getElementById("inviteForm").addEventListener(
       const email = document.getElementById("inviteEmail")
         .value.trim().toLowerCase();
 
+      if (!email)
+        throw new Error("Enter an email address.");
+
+      showDashboardMessage(
+        `Sending administrator invitation to ${email}...`,
+        "success"
+      );
+
       const result = await apiRequest(
         "/api/admins/invite",
         "POST",
         { email }
       );
 
-      showDashboardMessage(result.message, "success");
+      showDashboardMessage(
+        result.message || `Invitation request completed for ${email}.`,
+        "success"
+      );
+
       document.getElementById("inviteEmail").value = "";
 
+      await refreshAdmins();
+
     } catch (error) {
-      showDashboardMessage(error.message, "error");
+      console.error("Invitation error:", error);
+
+      showDashboardMessage(
+        `Invitation failed: ${error.message}`,
+        "error"
+      );
 
     } finally {
       button.disabled = false;
@@ -1294,10 +1366,15 @@ async function removeAdmin(admin) {
       { firebase_uid: admin.firebase_uid }
     );
 
-    showDashboardMessage(result.message, "success");
+    showDashboardMessage(
+      result.message || "Administrator removed successfully.",
+      "success"
+    );
+
     await refreshAdmins();
 
   } catch (error) {
+    console.error("Remove admin error:", error);
     showDashboardMessage(error.message, "error");
   }
 }
